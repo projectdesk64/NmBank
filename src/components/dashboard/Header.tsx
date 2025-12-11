@@ -2,12 +2,9 @@ import { Search, Bell, HelpCircle, User, Moon, Sun } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
+import nmbLogo from "@/assets/nmb-logo.svg";
 
-interface HeaderProps {
-  logoUrl?: string;
-}
-
-export const Header = ({ logoUrl }: HeaderProps) => {
+export const Header = () => {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -16,18 +13,7 @@ export const Header = ({ logoUrl }: HeaderProps) => {
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo */}
           <div className="flex-shrink-0">
-            {logoUrl ? (
-              <img src={logoUrl} alt="New Moscow Bank" className="h-10 w-auto" />
-            ) : (
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-heading font-bold text-lg">NM</span>
-                </div>
-                <span className="font-heading font-semibold text-lg text-foreground hidden sm:block">
-                  New Moscow Bank
-                </span>
-              </div>
-            )}
+            <img src={nmbLogo} alt="New Moscow Bank" className="h-10 w-auto" />
           </div>
 
           {/* Search Bar */}

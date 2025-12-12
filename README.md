@@ -1,73 +1,142 @@
-# Welcome to your Lovable project
+# New Moscow Bank - Digital Banking Dashboard
 
-## Project info
+A modern, responsive banking dashboard application built with React, TypeScript, and Tailwind CSS.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+##  Live Demo
 
-## How can I edit this code?
+** [View Live Application](https://nmbank-b91ef.web.app)**
 
-There are several ways of editing your application.
 
-**Use Lovable**
+## Project Overview
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+This is a digital banking dashboard for New Moscow Bank (NMB), featuring account management, transaction history, quick transfers, and various banking services. The application provides a clean, user-friendly interface with support for light and dark themes.
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
+## Technologies
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Vite** - Fast build tool and development server
+- **TypeScript** - Type-safe JavaScript
+- **React 18** - UI library
+- **shadcn-ui** - High-quality component library
+- **Tailwind CSS** - Utility-first CSS framework
+- **React Router** - Client-side routing
+- **TanStack React Query** - Data fetching and caching
+- **Radix UI** - Accessible component primitives
 
-## How can I deploy this project?
+## Getting Started
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+### Prerequisites
 
-## Can I connect a custom domain to my Lovable project?
+- Node.js (v18 or higher recommended)
+- npm or yarn package manager
 
-Yes, you can!
+### Installation
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+1. Clone the repository:
+```sh
+git clone <YOUR_GIT_URL>
+cd nmbank
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+2. Install dependencies:
+```sh
+npm install
+```
+
+3. Set up Firebase:
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project or select an existing one
+   - Enable Authentication (Email/Password provider)
+   - Enable Firestore Database
+   - Go to Project Settings > General > Your apps
+   - Click on the web app icon (</>) or add a new web app
+   - Copy the Firebase configuration values
+
+4. Create a `.env` file in the root directory:
+```sh
+# Firebase Configuration
+VITE_FIREBASE_API_KEY=your-api-key-here
+VITE_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
+VITE_FIREBASE_APP_ID=your-app-id
+```
+
+5. Replace the placeholder values in `.env` with your actual Firebase configuration values
+
+6. Start the development server:
+```sh
+npm run dev
+```
+
+The application will be available at `http://localhost:8080`
+
+### Firebase Setup Requirements
+
+- **Authentication**: Enable Email/Password authentication in Firebase Console
+  - Go to Authentication > Sign-in method > Enable Email/Password
+
+- **Firestore Database**: Create a Firestore database
+  - Go to Firestore Database > Create database
+  - Start in test mode (or configure security rules as needed)
+  - The app expects a `users` collection with user documents containing:
+    - `balance`: number
+    - `profile`: object with user profile data
+    - `accountDetails`: object with account information
+    - `fixedDeposits`: array
+    - `transactions`: subcollection with transaction documents
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build in development mode
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
+
+## Deployment
+
+This project is configured for Firebase Hosting. To deploy:
+
+1. Build the project:
+```sh
+npm run build
+```
+
+2. Deploy to Firebase:
+```sh
+firebase deploy
+```
+
+Make sure you have:
+- Firebase CLI installed (`npm install -g firebase-tools`)
+- Logged in to Firebase (`firebase login`)
+- Initialized Firebase in your project (`firebase init`)
+
+
+## Project Structure
+
+```
+src/
+├── components/        # React components
+│   ├── dashboard/    # Dashboard-specific components
+│   └── ui/           # Reusable UI components (shadcn-ui)
+├── pages/            # Page components
+├── hooks/            # Custom React hooks
+├── lib/              # Utility functions
+└── assets/           # Static assets
+```
+
+## Development
+
+The project uses:
+- TypeScript for type safety
+- ESLint for code linting
+- Path aliases (`@/`) for cleaner imports
+- CSS variables for theming
+
+## License
+
+© 2024 New Moscow Bank. All rights reserved. Licensed by Central Bank of Russia.

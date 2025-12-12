@@ -61,33 +61,100 @@ SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayNam
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      className={cn(
-        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-        position === "popper" &&
-          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-        className,
-      )}
-      position={position}
-      {...props}
-    >
-      <SelectScrollUpButton />
-      <SelectPrimitive.Viewport
+>(({ className, children, position = "popper", ...props }, ref) => {
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  
+  // Prevent body scroll lock and maintain scrollbar visibility when Select is open
+  React.useEffect(() => {
+    const contentElement = contentRef.current;
+    if (!contentElement) return;
+
+    // Store original body overflow style
+    const originalOverflow = document.body.style.overflow || '';
+
+    // Function to ensure scrollbar remains visible - prevent body scroll lock
+    const ensureScrollbarVisible = () => {
+      // Ensure body overflow is never set to 'hidden' when Select is open
+      // Radix Select doesn't lock scroll by default, but ensure it stays that way
+      if (document.body.style.overflow === 'hidden') {
+        document.body.style.overflow = originalOverflow || '';
+      }
+    };
+
+    // Monitor for state changes on the content element
+    const observer = new MutationObserver(() => {
+      const state = contentElement.getAttribute('data-state');
+      if (state === 'open') {
+        // When Select opens, ensure body scroll is not locked
+        ensureScrollbarVisible();
+        // Use requestAnimationFrame to check again after any potential style changes
+        requestAnimationFrame(ensureScrollbarVisible);
+      }
+    });
+
+    // Observe the content element for state changes
+    observer.observe(contentElement, {
+      attributes: true,
+      attributeFilter: ['data-state']
+    });
+
+    // Check initial state
+    const initialState = contentElement.getAttribute('data-state');
+    if (initialState === 'open') {
+      ensureScrollbarVisible();
+    }
+
+    // Cleanup
+    return () => {
+      observer.disconnect();
+      // Restore original overflow only if it was changed
+      if (document.body.style.overflow !== originalOverflow) {
+        document.body.style.overflow = originalOverflow;
+      }
+    };
+  }, []);
+
+  // Combine refs
+  const combinedRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      contentRef.current = node;
+      if (typeof ref === 'function') {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
+    },
+    [ref]
+  );
+
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Content
+        ref={combinedRef}
         className={cn(
-          "p-1",
+          "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
           position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
+            "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+          className,
         )}
+        position={position}
+        {...props}
       >
-        {children}
-      </SelectPrimitive.Viewport>
-      <SelectScrollDownButton />
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
-));
+        <SelectScrollUpButton />
+        <SelectPrimitive.Viewport
+          className={cn(
+            "p-1",
+            position === "popper" &&
+              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
+          )}
+        >
+          {children}
+        </SelectPrimitive.Viewport>
+        <SelectScrollDownButton />
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
+  );
+});
 SelectContent.displayName = SelectPrimitive.Content.displayName;
 
 const SelectLabel = React.forwardRef<

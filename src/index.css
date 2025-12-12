@@ -1,153 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* New Moscow Bank Design System
-   Colors: Deep Maroon (#6f0300), Warm Orange (#dc8924), Classic Blue (#0000ee), White (#ffffff), Charcoal (#0f0f0f)
-   Typography: Fira Sans (headings), Inter (body)
-   Spacing: 8px grid, 15px border-radius
-   Shadows: rgba(0,0,0,0.25)
-*/
-
 @layer base {
   :root {
-    /* Core Brand Colors (HSL) */
-    --maroon: 1 100% 22%;
-    --orange: 34 74% 50%;
-    --blue: 240 100% 47%;
-    --charcoal: 0 0% 6%;
-    
-    /* Light Theme */
-    --background: 0 0% 97%;
+    /* Base Colors */
+    --background: 210 20% 96%;
+    /* #F5F6F7 */
     --foreground: 0 0% 6%;
+    /* #0F0F0F */
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 6%;
+    --card-foreground: 0 0% 29%;
+    /* #4A4A4A */
 
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 6%;
 
-    --primary: 1 100% 22%;
+    /* Brand Colors - NMB */
+    --primary: 8 100% 27%;
+    /* #8A1200 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 94%;
-    --secondary-foreground: 0 0% 6%;
+    --secondary: 221 100% 96%;
+    --secondary-foreground: 231 74% 45%;
+    /* #1E39C6 */
 
-    --muted: 0 0% 94%;
+    --muted: 210 20% 96%;
     --muted-foreground: 0 0% 45%;
+    /* #737373 */
 
-    --accent: 34 74% 50%;
+    --accent: 33 72% 50%;
+    /* #DC8924 (Adjusted for NMB Orange) */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 1 100% 22%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 1 100% 22%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 231 74% 45%;
+    /* Banking Blue */
 
     --radius: 0.9375rem;
+    /* 15px */
 
-    /* Semantic Colors */
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
-    --link: 240 100% 47%;
-
-    /* Shadows */
-    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
-    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
-    --shadow-elevated: 0 8px 30px rgba(0, 0, 0, 0.12);
-
-    /* Sidebar */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 6%;
-    --sidebar-primary: 1 100% 22%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 6%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 1 100% 22%;
+    /* Semantic Variables for CSS usage */
+    --nmb-maroon: #8A1200;
+    --nmb-orange: #DC8924;
+    --nmb-blue: #1E39C6;
   }
 
+  /* Dark mode overrides - forcing light theme preference for visual consistency in this demo */
   .dark {
-    /* Dark Theme */
-    --background: 0 0% 7%;
-    --foreground: 0 0% 95%;
-
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 95%;
-
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 95%;
-
-    --primary: 1 100% 30%;
+    --background: 210 20% 96%;
+    --foreground: 0 0% 6%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 29%;
+    --primary: 8 100% 27%;
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 95%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
-
-    --accent: 34 74% 55%;
-    --accent-foreground: 0 0% 6%;
-
-    --destructive: 1 100% 35%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 1 100% 30%;
-
-    /* Semantic Colors */
-    --success: 142 76% 42%;
-    --success-foreground: 0 0% 100%;
-    --link: 240 100% 65%;
-
-    /* Sidebar */
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 1 100% 30%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 1 100% 30%;
+    --accent: 33 72% 50%;
+    --accent-foreground: 0 0% 100%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: "Inter", sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-heading;
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
   }
 }
 
 @layer utilities {
+  .gradient-subtle {
+    @apply bg-gradient-to-br from-white to-[#F5F6F7];
+  }
+
   .gradient-maroon {
-    @apply bg-gradient-to-br from-primary to-primary/80;
+    @apply bg-gradient-to-br from-nmb-maroon to-[#600C00];
   }
 
-  .gradient-blue {
-    @apply bg-gradient-to-br from-link to-link/80;
+  .card-premium {
+    @apply bg-white rounded-xl border border-black/5 transition-all duration-300;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.08);
   }
 
-  .gradient-orange {
-    @apply bg-gradient-to-br from-accent to-accent/80;
+  .card-premium:hover {
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
   }
 
-  .card-shadow {
-    box-shadow: var(--shadow-card);
+  /* Premium service card animations */
+  .service-card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.3s ease-out, border-color 0.3s ease-out;
   }
 
-  .elevated-shadow {
-    box-shadow: var(--shadow-elevated);
+  .service-card:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(138, 18, 0, 0.08);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .service-card {
+      transition: box-shadow 0.15s ease-out, border-color 0.15s ease-out;
+    }
+    
+    .service-card:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Prevent scrollbar glitch when dialogs open */
+  body.dialog-open {
+    overflow: hidden !important;
   }
 }

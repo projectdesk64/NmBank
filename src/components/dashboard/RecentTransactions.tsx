@@ -1,156 +1,193 @@
-import {
-  ShoppingCart,
-  Coffee,
-  Utensils,
-  Zap,
-  CreditCard,
-  ArrowDownLeft,
-  ArrowUpRight,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react';
+import { ArrowDownLeft, ArrowUpRight, ChevronRight, Receipt } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { cn, formatCurrency } from '@/lib/utils';
+import { useLanguage } from '@/hooks/useLanguage';
 
-interface Transaction {
+export interface Transaction {
   id: string;
   description: string;
-  category: string;
   amount: number;
   date: string;
-  type: "credit" | "debit";
-  icon: typeof ShoppingCart;
+  type: 'credit' | 'debit';
+  referenceId: string;
+  category?: string;
 }
 
-const transactions: Transaction[] = [
-  {
-    id: "1",
-    description: "Salary Deposit",
-    category: "Income",
-    amount: 150000,
-    date: "Dec 10, 2024",
-    type: "credit",
-    icon: ArrowDownLeft,
-  },
-  {
-    id: "2",
-    description: "Pyaterochka",
-    category: "Groceries",
-    amount: 3250,
-    date: "Dec 09, 2024",
-    type: "debit",
-    icon: ShoppingCart,
-  },
-  {
-    id: "3",
-    description: "Coffee House",
-    category: "Dining",
-    amount: 450,
-    date: "Dec 09, 2024",
-    type: "debit",
-    icon: Coffee,
-  },
-  {
-    id: "4",
-    description: "Moscow Power",
-    category: "Utilities",
-    amount: 2800,
-    date: "Dec 08, 2024",
-    type: "debit",
-    icon: Zap,
-  },
-  {
-    id: "5",
-    description: "Restaurant Pushkin",
-    category: "Dining",
-    amount: 8500,
-    date: "Dec 07, 2024",
-    type: "debit",
-    icon: Utensils,
-  },
-  {
-    id: "6",
-    description: "Transfer from Ivan",
-    category: "Transfer",
-    amount: 25000,
-    date: "Dec 06, 2024",
-    type: "credit",
-    icon: ArrowDownLeft,
-  },
-  {
-    id: "7",
-    description: "Card Payment",
-    category: "Shopping",
-    amount: 12000,
-    date: "Dec 05, 2024",
-    type: "debit",
-    icon: CreditCard,
-  },
-];
+interface RecentTransactionsProps {
+  data: Transaction[];
+  loading?: boolean;
+}
 
-export const RecentTransactions = () => {
-  const formatAmount = (amount: number, type: "credit" | "debit") => {
-    const formatted = new Intl.NumberFormat("ru-RU", {
-      style: "currency",
-      currency: "RUB",
-      minimumFractionDigits: 0,
-    }).format(amount);
-    return type === "credit" ? `+${formatted}` : `-${formatted}`;
+const formatDate = (dateString: string) => {
+  // Expected format: "12 Dec 2025, 05:17 pm"
+  return dateString;
+};
+
+// Helper function to translate transaction categories
+const translateCategory = (category: string | undefined, t: any): string => {
+  if (!category) return '';
+  const categoryLower = category.toLowerCase();
+  const categoryMap: Record<string, keyof typeof t.dashboard.recentTransactions.categories> = {
+    'transfer': 'transfer',
+    'entertainment': 'entertainment',
+    'food': 'food',
+    'shopping': 'shopping',
+    'bills': 'bills',
+    'other': 'other',
   };
+  const key = categoryMap[categoryLower];
+  return key ? t.dashboard.recentTransactions.categories[key] : category;
+};
 
-  return (
-    <div className="bg-card rounded-lg border border-border card-shadow">
-      <div className="p-6 border-b border-border">
-        <div className="flex items-center justify-between">
-          <h3 className="font-heading font-semibold text-lg text-foreground">
-            Recent Transactions
-          </h3>
-          <Button variant="link" className="text-link hover:text-link/80 p-0 h-auto">
-            View All →
-          </Button>
+// Helper function to translate transaction descriptions
+const translateDescription = (description: string, t: any): string => {
+  const descriptionMap: Record<string, keyof typeof t.dashboard.recentTransactions.descriptions> = {
+    'opening deposit': 'openingDeposit',
+    'netflix': 'netflix',
+    'starbucks': 'starbucks',
+  };
+  const key = descriptionMap[description.toLowerCase()];
+  return key ? t.dashboard.recentTransactions.descriptions[key] : description;
+};
+
+export const RecentTransactions = ({ data, loading = false }: RecentTransactionsProps) => {
+  const { t, language } = useLanguage();
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl p-8 shadow-large mb-8 animate-pulse">
+        <div className="h-6 bg-gray-200 rounded w-40 mb-6"></div>
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-18 bg-gray-200 rounded-lg"></div>
+          ))}
         </div>
       </div>
+    );
+  }
 
-      <div className="divide-y divide-border">
-        {transactions.map((transaction, index) => (
-          <div
-            key={transaction.id}
-            className={cn(
-              "flex items-center gap-4 px-6 py-4 hover:bg-secondary/30 transition-colors",
-              "opacity-0 animate-fade-in"
-            )}
-            style={{ animationDelay: `${index * 50}ms` }}
-          >
-            <div
-              className={cn(
-                "p-2.5 rounded-lg",
-                transaction.type === "credit"
-                  ? "bg-success/10 text-success"
-                  : "bg-primary/10 text-primary"
-              )}
-            >
-              <transaction.icon className="h-4 w-4" />
-            </div>
+  return (
+    <>
+      <div className="bg-white rounded-2xl p-8 shadow-large mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-heading font-bold text-nmb-charcoal">{t.dashboard.recentTransactions.title}</h3>
+          <Button variant="link" className="text-nmb-blue hover:text-nmb-blue/80 p-0 h-auto font-medium">
+            {t.dashboard.recentTransactions.viewAll}
+          </Button>
+        </div>
 
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-foreground truncate">
-                {transaction.description}
-              </p>
-              <p className="text-sm text-muted-foreground">{transaction.category}</p>
-            </div>
-
-            <div className="text-right">
-              <p
+        {data.length === 0 ? (
+          <div className="text-center py-12">
+            <Receipt className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600 mb-2">{t.dashboard.recentTransactions.noRecentTransactions}</p>
+            <Button variant="outline" className="mt-4">
+              {t.dashboard.recentTransactions.viewTransactionHistory}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-0">
+            {data.map((transaction, index) => (
+              <button
+                key={transaction.id}
+                onClick={() => setSelectedTransaction(transaction)}
                 className={cn(
-                  "font-semibold",
-                  transaction.type === "credit" ? "text-success" : "text-foreground"
+                  "w-full flex items-center gap-4 p-4 rounded-lg hover:bg-nmb-smoke transition-colors group",
+                  index !== data.length - 1 && "border-b border-nmb-mist"
                 )}
               >
-                {formatAmount(transaction.amount, transaction.type)}
-              </p>
-              <p className="text-xs text-muted-foreground">{transaction.date}</p>
-            </div>
+                {/* Icon Circle */}
+                <div className={cn(
+                  "w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0",
+                  transaction.type === 'credit' 
+                    ? 'bg-green-50 text-green-600' 
+                    : 'bg-red-50 text-red-600'
+                )}>
+                  {transaction.type === 'credit' ? (
+                    <ArrowUpRight className="h-5 w-5" />
+                  ) : (
+                    <ArrowDownLeft className="h-5 w-5" />
+                  )}
+                </div>
+
+                {/* Description & Date */}
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-semibold text-nmb-charcoal mb-1 truncate">
+                    {translateDescription(transaction.description, t)}
+                  </p>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    {transaction.category && (
+                      <>
+                        <span>{translateCategory(transaction.category, t)}</span>
+                        <span>•</span>
+                      </>
+                    )}
+                    <span>{formatDate(transaction.date)}</span>
+                  </div>
+                </div>
+
+                {/* Amount */}
+                <div className="text-right flex-shrink-0">
+                  <p className={cn(
+                    "text-lg font-bold font-mono tabular-nums",
+                    transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
+                  )}>
+                    {transaction.type === 'credit' ? '+' : '-'} {formatCurrency(Math.abs(transaction.amount), language)}
+                  </p>
+                </div>
+
+                {/* Chevron */}
+                <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-nmb-maroon transition-colors flex-shrink-0" />
+              </button>
+            ))}
           </div>
-        ))}
+        )}
       </div>
-    </div>
+
+      {/* Transaction Detail Modal */}
+      <Dialog open={!!selectedTransaction} onOpenChange={() => setSelectedTransaction(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t.dashboard.recentTransactions.transactionDetails}</DialogTitle>
+            <DialogDescription>
+              {t.dashboard.recentTransactions.referenceId} {selectedTransaction?.referenceId}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedTransaction && (
+            <div className="space-y-4 py-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{t.dashboard.recentTransactions.description}</p>
+                <p className="font-semibold text-lg">{translateDescription(selectedTransaction.description, t)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{t.dashboard.recentTransactions.amount}</p>
+                <p className={cn(
+                  "text-2xl font-bold font-mono tabular-nums",
+                  selectedTransaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
+                )}>
+                  {selectedTransaction.type === 'credit' ? '+' : '-'} {formatCurrency(Math.abs(selectedTransaction.amount), language)}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{t.dashboard.recentTransactions.dateTime}</p>
+                <p className="font-medium">{formatDate(selectedTransaction.date)}</p>
+              </div>
+              {selectedTransaction.category && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">{t.dashboard.recentTransactions.category}</p>
+                  <p className="font-medium">{translateCategory(selectedTransaction.category, t)}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{t.dashboard.recentTransactions.referenceId}</p>
+                <p className="font-mono text-sm">{selectedTransaction.referenceId}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

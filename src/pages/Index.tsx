@@ -1,126 +1,102 @@
 import { useState } from "react";
-import { PiggyBank, Wallet, TrendingUp } from "lucide-react";
 import { Header } from "@/components/dashboard/Header";
-import { WelcomeSection } from "@/components/dashboard/WelcomeSection";
 import { AccountCard } from "@/components/dashboard/AccountCard";
 import { QuickTransfer } from "@/components/dashboard/QuickTransfer";
-import { FavoriteActions } from "@/components/dashboard/FavoriteActions";
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
-import {
-  DepositWidget,
-  NotificationsWidget,
-  OffersWidget,
-} from "@/components/dashboard/MiniWidgets";
+import { Wallet, PiggyBank, TrendingUp, Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ActionList } from "@/components/dashboard/ActionList";
 
-const Index = () => {
+export const Index = () => {
   const [showBalances, setShowBalances] = useState(true);
-  const [cardBalanceVisibility, setCardBalanceVisibility] = useState({
-    savings: true,
-    current: true,
-    investment: true,
-  });
-
-  const toggleCardBalance = (card: keyof typeof cardBalanceVisibility) => {
-    setCardBalanceVisibility((prev) => ({
-      ...prev,
-      [card]: !prev[card],
-    }));
-  };
-
-  const handleGlobalBalanceToggle = (show: boolean) => {
-    setShowBalances(show);
-    setCardBalanceVisibility({
-      savings: show,
-      current: show,
-      investment: show,
-    });
-  };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-12 font-body selection:bg-banking-blue/20">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="container-centered pt-8 space-y-8">
+
         {/* Welcome Section */}
-        <div className="mb-8">
-          <WelcomeSection
-            userName="Alexei"
-            lastLogin="December 11, 2024 at 09:32 AM (Moscow)"
-            showBalances={showBalances}
-            onToggleBalances={handleGlobalBalanceToggle}
-          />
+        <div className="flex items-end justify-between">
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-maroon tracking-tight">Welcome, Alexei</h1>
+            <p className="text-muted-foreground mt-1 text-sm font-medium">Last login: Today, 09:41 AM</p>
+          </div>
+          <Button
+            variant="ghost"
+            onClick={() => setShowBalances(!showBalances)}
+            className="text-banking-blue hover:text-banking-blue/80 hover:bg-banking-blue/5 gap-2 font-medium"
+          >
+            {showBalances ? (
+              <>
+                <EyeOff className="h-4 w-4" /> Hide Balances
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4" /> Show Balances
+              </>
+            )}
+          </Button>
         </div>
 
-        {/* Account Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {/* Account Cards Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <AccountCard
             title="Savings Account"
             balance={1250340.75}
-            accountNumber="40817810099994521"
-            icon={PiggyBank}
-            variant="maroon"
-            showBalance={cardBalanceVisibility.savings}
-            onToggleBalance={() => toggleCardBalance("savings")}
-            delay={0}
+            accountNumber="4521"
+            icon={Wallet}
+            variant="default"
+            showBalance={showBalances}
           />
           <AccountCard
             title="Current Account"
             balance={89450.00}
-            accountNumber="40817810099997832"
-            icon={Wallet}
+            accountNumber="7832"
+            icon={PiggyBank}
             variant="blue"
-            showBalance={cardBalanceVisibility.current}
-            onToggleBalance={() => toggleCardBalance("current")}
+            showBalance={showBalances}
             delay={100}
           />
           <AccountCard
-            title="Investment Account"
+            title="Investment Portfolio"
             balance={2500000.00}
-            accountNumber="40817810099999156"
+            accountNumber="9156"
             icon={TrendingUp}
             variant="orange"
-            showBalance={cardBalanceVisibility.investment}
-            onToggleBalance={() => toggleCardBalance("investment")}
+            showBalance={showBalances}
             delay={200}
           />
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Left Column - Quick Transfer */}
-          <div className="lg:col-span-2">
+        {/* Two-Column Main Area */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+
+          {/* Left: Quick Transfer & Transactions (Span 8) */}
+          <div className="md:col-span-8 space-y-8">
             <QuickTransfer />
+            <RecentTransactions data={[]} />
           </div>
 
-          {/* Right Column - Favorite Actions */}
-          <div>
-            <FavoriteActions />
+          {/* Right: Favorite Actions (Span 4) */}
+          <div className="md:col-span-4 space-y-6">
+            <ActionList />
+
+            {/* Optional Mini Widget Space */}
+            <div className="card-premium p-6 bg-gradient-to-br from-[#1E39C6] to-[#152a96] text-white border-none">
+              <h4 className="font-heading font-semibold text-lg mb-2 text-white">Open Fixed Deposit</h4>
+              <p className="text-white/80 text-sm mb-4">Earn up to 12% p.a. with our new tax-saving deposits.</p>
+              <Button variant="secondary" className="w-full bg-white text-banking-blue hover:bg-white/90 font-semibold border-none">
+                View Details
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Transactions Section */}
-        <div className="mb-8">
-          <RecentTransactions />
-        </div>
-
-        {/* Widgets Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <DepositWidget />
-          <NotificationsWidget />
-          <OffersWidget />
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-sm text-muted-foreground text-center">
-            © 2024 New Moscow Bank. All rights reserved. Licensed by Central Bank of Russia.
-          </p>
-        </div>
-      </footer>
     </div>
   );
+
 };
 
 export default Index;

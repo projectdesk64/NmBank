@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
         heading: ["Fira Sans", "system-ui", "sans-serif"],
+        mono: ["Roboto Mono", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -23,6 +24,20 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        nmb: {
+          maroon: "#8A1200",   // Primary Brand
+          orange: "#DC8924",   // Primary Action/CTA
+          blue: "#1E39C6",     // Trust/Banking accents
+          charcoal: "#0F0F0F", // Text Main / Footer Bg
+          smoke: "#F5F6F7",    // Page Background
+          mist: "#E5E7EB",     // Borders
+        },
+        green: {
+          DEFAULT: "#10B981",
+        },
+        red: {
+          DEFAULT: "#DC2626",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -51,32 +66,27 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
-        },
-        // Brand colors
-        maroon: "hsl(var(--maroon))",
-        orange: "hsl(var(--orange))",
-        blue: "hsl(var(--blue))",
-        charcoal: "hsl(var(--charcoal))",
-        success: "hsl(var(--success))",
-        link: "hsl(var(--link))",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 4px)",
         sm: "calc(var(--radius) - 8px)",
+        xl: "15px",
       },
-      spacing: {
-        "18": "4.5rem",
-        "22": "5.5rem",
+      backgroundImage: {
+        'gradient-maroon': 'linear-gradient(135deg, #8A1200 0%, #600C00 100%)',
+        'gradient-subtle': 'linear-gradient(180deg, #FFFFFF 0%, #F5F6F7 100%)',
+      },
+      boxShadow: {
+        'small': '0 2px 8px rgba(0,0,0,0.06)',
+        'medium': '0 4px 12px rgba(0,0,0,0.08)',
+        'large': '0 6px 20px rgba(0,0,0,0.12)',
+        'card-sm': '0 2px 8px rgba(0,0,0,0.06)',
+        'card': '0 4px 12px rgba(0,0,0,0.08)',
+        'card-elevated': '0 4px 20px rgba(0,0,0,0.08)',
+        'card-hover': '0 8px 24px rgba(0,0,0,0.12)',
+        'card-strong': '0 8px 32px rgba(0,0,0,0.15)',
+        'glow-orange': '0 0 12px rgba(220,137,36,0.3)',
       },
       keyframes: {
         "accordion-down": {
@@ -110,7 +120,7 @@ export default {
         "fade-in": "fade-in 0.4s ease-out forwards",
         "slide-up": "slide-up 0.5s ease-out forwards",
         "scale-in": "scale-in 0.3s ease-out forwards",
-        shimmer: "shimmer 2s infinite linear",
+        "shimmer": "shimmer 2s infinite linear",
       },
     },
   },

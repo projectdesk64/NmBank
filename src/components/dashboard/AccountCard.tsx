@@ -1,90 +1,116 @@
-import { LucideIcon, Eye, EyeOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Eye, EyeOff, CreditCard, Copy } from 'lucide-react';
+import { cn, formatCurrency } from '@/lib/utils';
+import { useBalanceStore } from '@/hooks/useBalanceStore';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface AccountCardProps {
-  title: string;
+  type: 'SAVINGS' | 'CURRENT' | 'CREDIT';
   balance: number;
-  accountNumber: string;
-  icon: LucideIcon;
-  variant: "maroon" | "blue" | "orange";
-  showBalance: boolean;
-  onToggleBalance: () => void;
-  delay?: number;
+  number: string;
+  currency?: string;
+  isPrimary?: boolean;
 }
 
-const variantStyles = {
-  maroon: "bg-gradient-to-br from-primary via-primary/90 to-primary/70",
-  blue: "bg-gradient-to-br from-link via-link/90 to-link/70",
-  orange: "bg-gradient-to-br from-accent via-accent/90 to-accent/70",
-};
+export const AccountCard = ({ type, balance, number, currency = '$', isPrimary }: AccountCardProps) => {
+  const { isVisible, toggleVisibility } = useBalanceStore();
+  const { language } = useLanguage();
 
-export const AccountCard = ({
-  title,
-  balance,
-  accountNumber,
-  icon: Icon,
-  variant,
-  showBalance,
-  onToggleBalance,
-  delay = 0,
-}: AccountCardProps) => {
-  const formatBalance = (amount: number) => {
-    return new Intl.NumberFormat("ru-RU", {
-      style: "currency",
-      currency: "RUB",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  const maskedBalance = "••••••••";
-  const maskedAccount = `****${accountNumber.slice(-4)}`;
+  // Format balance and split for display
+  const formattedBalance = formatCurrency(balance, language, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // Try to split by decimal point (works for most currencies)
+  const decimalMatch = formattedBalance.match(/[.,]\d{2}/);
+  const decimalPart = decimalMatch ? decimalMatch[0].substring(1) : '';
+  const integerPart = decimalMatch ? formattedBalance.substring(0, decimalMatch.index) : formattedBalance;
 
   return (
-    <div
+    <motion.div
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
       className={cn(
-        "rounded-lg p-5 text-white relative overflow-hidden opacity-0 animate-slide-up",
-        variantStyles[variant]
+        "relative min-w-[300px] md:min-w-[340px] h-[190px] rounded-xl p-6 flex flex-col justify-between overflow-hidden cursor-pointer selection:bg-white/30",
+        isPrimary
+          ? "bg-gradient-maroon text-white shadow-xl shadow-nmb-maroon/20"
+          : "bg-white text-nmb-charcoal border border-gray-100 shadow-card-sm hover:shadow-card-hover"
       )}
-      style={{ animationDelay: `${delay}ms` }}
     >
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full border-2 border-white/30" />
-        <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full border-2 border-white/20" />
-      </div>
+      {/* Background decoration for Primary */}
+      {isPrimary && (
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+      )}
 
-      <div className="relative z-10">
-        <div className="flex items-start justify-between mb-4">
-          <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-            <Icon className="h-5 w-5" />
+      {/* Top Row: Icon + Type + Toggle */}
+      <div className="flex justify-between items-start z-10">
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            "w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm",
+            isPrimary ? "bg-white/10" : "bg-gray-100"
+          )}>
+            <CreditCard className={cn("w-5 h-5", isPrimary ? "text-white" : "text-nmb-maroon")} />
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10"
-            onClick={onToggleBalance}
-          >
-            {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </Button>
+          <div>
+            <p className={cn("text-xs font-medium uppercase tracking-wider opacity-80", isPrimary ? "text-white" : "text-gray-500")}>
+              {type} Account
+            </p>
+            <p className={cn("text-sm font-semibold", isPrimary ? "text-white" : "text-nmb-charcoal")}>
+              New Moscow {type === 'CREDIT' ? 'Platinum' : 'Standard'}
+            </p>
+          </div>
         </div>
 
-        <p className="text-sm text-white/80 font-medium mb-1">{title}</p>
-        <p className="text-2xl font-heading font-bold mb-3">
-          {showBalance ? formatBalance(balance) : maskedBalance}
-        </p>
+        <button
+          onClick={(e) => { e.stopPropagation(); toggleVisibility(); }}
+          className={cn(
+            "p-2 rounded-full transition-colors",
+            isPrimary ? "hover:bg-white/10 text-white/80" : "hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+          )}
+        >
+          {isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
+      </div>
 
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-white/70">{maskedAccount}</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs text-white/90 hover:text-white hover:bg-white/10 h-7 px-2"
-          >
-            View Details →
-          </Button>
+      {/* Middle: Number */}
+      <div className="flex items-center gap-2 mt-4 opacity-80 z-10">
+        <span className="font-mono text-sm tracking-widest">
+          •••• •••• {number.slice(-4)}
+        </span>
+        <Copy className="w-3 h-3 cursor-pointer hover:opacity-100 transition-opacity" />
+      </div>
+
+      {/* Bottom: Balance */}
+      <div className="z-10 mt-auto">
+        <p className={cn("text-xs mb-1 opacity-70", isPrimary ? "text-white" : "text-gray-500")}>
+          Available Balance
+        </p>
+        <div className="h-9 flex items-baseline gap-1">
+          <AnimatePresence mode="wait">
+            {isVisible ? (
+              <motion.div
+                key="balance"
+                initial={{ opacity: 0, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, filter: 'blur(4px)' }}
+                transition={{ duration: 0.2 }}
+                className="flex items-baseline"
+              >
+                <span className="text-3xl font-bold tracking-tight">{integerPart}</span>
+                {decimalPart && <span className="text-xl font-medium opacity-80">.{decimalPart}</span>}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="masked"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-3xl font-bold tracking-widest mt-1"
+              >
+                ••••••
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

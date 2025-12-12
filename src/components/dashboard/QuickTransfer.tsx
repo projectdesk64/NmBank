@@ -1,130 +1,65 @@
-import { useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-
-const accounts = [
-  { id: "savings", name: "Savings Account", number: "****4521" },
-  { id: "current", name: "Current Account", number: "****7832" },
-  { id: "investment", name: "Investment Account", number: "****9156" },
-];
+import React, { useState } from 'react';
+import { Send, User, ChevronDown } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export const QuickTransfer = () => {
-  const [fromAccount, setFromAccount] = useState("");
-  const [toAccount, setToAccount] = useState("");
-  const [amount, setAmount] = useState("");
-  const { toast } = useToast();
-
-  const handleTransfer = () => {
-    if (!fromAccount || !toAccount || !amount) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all fields to proceed.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (fromAccount === toAccount) {
-      toast({
-        title: "Invalid Selection",
-        description: "Source and destination accounts must be different.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Transfer Initiated",
-      description: `₽${parseFloat(amount).toLocaleString()} transfer has been initiated.`,
-    });
-
-    setAmount("");
-  };
+  const { language } = useLanguage();
+  const [amount, setAmount] = useState('');
 
   return (
-    <div className="bg-card rounded-lg p-6 border border-border card-shadow">
-      <h3 className="font-heading font-semibold text-lg text-foreground mb-4">
-        Quick Transfer
-      </h3>
+    <div className="bg-white rounded-xl shadow-card-sm border border-gray-100 p-6 animate-slide-up h-full">
+      <h3 className="font-heading font-semibold text-nmb-charcoal mb-6">Quick Transfer</h3>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="from-account" className="text-sm font-medium">
-            From Account
-          </Label>
-          <Select value={fromAccount} onValueChange={setFromAccount}>
-            <SelectTrigger id="from-account" className="bg-secondary/50">
-              <SelectValue placeholder="Select source account" />
-            </SelectTrigger>
-            <SelectContent>
-              {accounts.map((account) => (
-                <SelectItem key={account.id} value={account.id}>
-                  <span className="flex items-center gap-2">
-                    {account.name}
-                    <span className="text-muted-foreground text-xs">
-                      {account.number}
-                    </span>
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="space-y-6">
+        {/* Payees Row */}
+        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex flex-col items-center gap-2 cursor-pointer min-w-[60px]">
+            <div className="w-12 h-12 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-nmb-orange hover:text-nmb-orange transition-colors">
+              <span className="text-xl">+</span>
+            </div>
+            <span className="text-xs font-medium text-gray-500">Add New</span>
+          </div>
+
+          {['Maria', 'Mom', 'Alex', 'Gym'].map((name, i) => (
+            <div key={name} className="flex flex-col items-center gap-2 cursor-pointer min-w-[60px] group">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center overflow-hidden border-2 transition-all ${i === 0 ? 'border-nmb-orange ring-2 ring-nmb-orange/20' : 'border-transparent group-hover:border-gray-200'}`}>
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-xs">
+                  {name[0]}
+                </div>
+              </div>
+              <span className={`text-xs font-medium ${i === 0 ? 'text-nmb-charcoal' : 'text-gray-400'}`}>{name}</span>
+            </div>
+          ))}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="to-account" className="text-sm font-medium">
-            To Account
-          </Label>
-          <Select value={toAccount} onValueChange={setToAccount}>
-            <SelectTrigger id="to-account" className="bg-secondary/50">
-              <SelectValue placeholder="Select destination account" />
-            </SelectTrigger>
-            <SelectContent>
-              {accounts.map((account) => (
-                <SelectItem key={account.id} value={account.id}>
-                  <span className="flex items-center gap-2">
-                    {account.name}
-                    <span className="text-muted-foreground text-xs">
-                      {account.number}
-                    </span>
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Amount Input */}
+        <div className="relative">
+          <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Amount</label>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">{language === 'ru' ? '₽' : '$'}</span>
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold text-nmb-charcoal focus:outline-none focus:ring-2 focus:ring-nmb-orange/20 focus:border-nmb-orange transition-all"
+                placeholder={language === 'ru' ? '0,00' : '0.00'}
+              />
+            </div>
+            <button className="flex items-center gap-2 px-3 py-3 bg-gray-100 rounded-xl text-nmb-charcoal font-medium hover:bg-gray-200 transition-colors">
+              {language === 'ru' ? 'RUB' : 'USD'} <ChevronDown className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="amount" className="text-sm font-medium">
-            Amount (₽)
-          </Label>
-          <Input
-            id="amount"
-            type="number"
-            placeholder="Enter amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="bg-secondary/50"
-          />
-        </div>
-
-        <Button
-          onClick={handleTransfer}
-          className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-medium"
+        {/* Send Button */}
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          className="w-full py-3.5 bg-nmb-orange text-white rounded-xl font-bold shadow-lg shadow-nmb-orange/30 hover:bg-orange-600 hover:shadow-orange-600/30 transition-all flex items-center justify-center gap-2"
         >
-          Transfer Now
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
+          Send Money <Send className="w-4 h-4" />
+        </motion.button>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { ArrowDownLeft, ArrowUpRight, ChevronRight, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -52,7 +52,7 @@ const translateDescription = (description: string, t: any): string => {
   return key ? t.dashboard.recentTransactions.descriptions[key] : description;
 };
 
-export const RecentTransactions = ({ data, loading = false }: RecentTransactionsProps) => {
+export const RecentTransactions = memo(({ data, loading = false }: RecentTransactionsProps) => {
   const { t, language } = useLanguage();
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
@@ -190,4 +190,4 @@ export const RecentTransactions = ({ data, loading = false }: RecentTransactions
       </Dialog>
     </>
   );
-};
+});

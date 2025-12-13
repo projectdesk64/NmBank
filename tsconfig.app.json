@@ -16,9 +16,9 @@
 
     /* Linting */
     "strict": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitAny": false,
+    "noUnusedLocals": true, // Enabled to catch unused variables
+    "noUnusedParameters": true, // Enabled to catch unused function parameters
+    "noImplicitAny": false, // TODO: Enable after fixing implicit any types
     "noFallthroughCasesInSwitch": false,
 
     "baseUrl": ".",

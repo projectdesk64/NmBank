@@ -78,7 +78,10 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
           copyTimeoutRef.current = null;
         }, 2000);
       } catch (err) {
-        console.error('Failed to copy:', err);
+        if (import.meta.env.DEV) {
+          console.error('Failed to copy:', err);
+        }
+        // Could show a toast notification here for production
       }
     }
   };

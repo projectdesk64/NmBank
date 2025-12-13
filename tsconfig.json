@@ -6,11 +6,12 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "noImplicitAny": false,
-    "noUnusedParameters": false,
+    // Type safety improvements - gradually enabling stricter checks
+    "noImplicitAny": false, // TODO: Enable after fixing implicit any types
+    "noUnusedParameters": true, // Enabled to catch unused function parameters
     "skipLibCheck": true,
     "allowJs": true,
-    "noUnusedLocals": false,
-    "strictNullChecks": false
+    "noUnusedLocals": true, // Enabled to catch unused variables
+    "strictNullChecks": false // TODO: Enable after fixing null/undefined handling
   }
 }

@@ -155,9 +155,10 @@ export const SendMoney = ({ accounts, onTransfer, loading = false }: SendMoneyPr
                       <span className="font-mono text-sm text-nmb-charcoal">
                         {formatAccountNumber(fromAccount, revealedFrom)}
                       </span>
-                      <button
+                      <span
                         onClick={(e) => {
                           e.stopPropagation();
+                          e.preventDefault();
                           // Clear existing timeout
                           if (revealTimeoutRef.current) {
                             clearTimeout(revealTimeoutRef.current);
@@ -171,7 +172,27 @@ export const SendMoney = ({ accounts, onTransfer, loading = false }: SendMoneyPr
                             }, 5000);
                           }
                         }}
-                        className="p-1.5 hover:bg-nmb-smoke rounded-lg transition-colors"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            // Clear existing timeout
+                            if (revealTimeoutRef.current) {
+                              clearTimeout(revealTimeoutRef.current);
+                              revealTimeoutRef.current = null;
+                            }
+                            setRevealedFrom(!revealedFrom);
+                            if (!revealedFrom) {
+                              revealTimeoutRef.current = setTimeout(() => {
+                                setRevealedFrom(false);
+                                revealTimeoutRef.current = null;
+                              }, 5000);
+                            }
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        className="p-1.5 hover:bg-nmb-smoke rounded-lg transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-nmb-orange/50"
                         aria-label={revealedFrom ? 'Hide account' : 'Reveal account'}
                       >
                         {revealedFrom ? (
@@ -179,7 +200,7 @@ export const SendMoney = ({ accounts, onTransfer, loading = false }: SendMoneyPr
                         ) : (
                           <Eye className="h-4 w-4 text-gray-600" />
                         )}
-                      </button>
+                      </span>
                     </div>
                   </SelectValue>
                 </SelectTrigger>

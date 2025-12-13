@@ -24,11 +24,25 @@ export const LoginWidget = ({ variant = 'default' }: LoginWidgetProps) => {
         setError(null);
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            console.log("Logged in successfully!");
+            if (import.meta.env.DEV) {
+                console.log("Logged in successfully!");
+            }
             // Navigation would usually happen here via a listener in a higher component or router
         } catch (err: any) {
-            console.error("Login failed", err);
-            setError("Invalid credentials. Please try again.");
+            if (import.meta.env.DEV) {
+                console.error("Login failed", err);
+            }
+            // Provide more specific error messages
+            const errorCode = err?.code;
+            if (errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
+                setError("Invalid email or password. Please check your credentials and try again.");
+            } else if (errorCode === 'auth/invalid-email') {
+                setError("Please enter a valid email address.");
+            } else if (errorCode === 'auth/too-many-requests') {
+                setError("Too many failed login attempts. Please try again later.");
+            } else {
+                setError("Unable to sign in. Please try again later.");
+            }
         } finally {
             setLoading(false);
         }

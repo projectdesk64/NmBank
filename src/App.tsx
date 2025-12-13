@@ -1,40 +1,55 @@
-import React from 'react';
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { LandingPage } from './pages/LandingPage';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
-import { ForgotPassword } from './pages/ForgotPassword';
-import { Index } from './pages/Index';
-import { Dashboard } from './pages/Dashboard';
-import { Settings } from './pages/Settings';
-import { ServicePage } from './pages/ServicePage';
-import NotFound from './pages/NotFound';
+import { Skeleton } from './components/ui/skeleton';
+
+// Lazy load pages for better code splitting
+const LandingPage = lazy(() => import('./pages/LandingPage').then(module => ({ default: module.LandingPage })));
+const Login = lazy(() => import('./pages/Login').then(module => ({ default: module.Login })));
+const Register = lazy(() => import('./pages/Register').then(module => ({ default: module.Register })));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(module => ({ default: module.ForgotPassword })));
+const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
+const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
+const ServicePage = lazy(() => import('./pages/ServicePage').then(module => ({ default: module.ServicePage })));
+const NotFound = lazy(() => import('./pages/NotFound')); // Already default export
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex min-h-screen items-center justify-center bg-nmb-smoke">
+    <div className="space-y-4 w-full max-w-md px-4">
+      <Skeleton className="h-12 w-full" />
+      <Skeleton className="h-64 w-full" />
+      <Skeleton className="h-32 w-full" />
+    </div>
+  </div>
+);
 
 function App() {
   return (
     <ErrorBoundary>
       <LanguageProvider>
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard/settings" element={<Settings />} />
-            <Route path="/dashboard/accounts" element={<ServicePage />} />
-            <Route path="/dashboard/cards" element={<ServicePage />} />
-            <Route path="/dashboard/transactions" element={<ServicePage />} />
-            <Route path="/dashboard/investments" element={<ServicePage />} />
-            <Route path="/dashboard/loans" element={<ServicePage />} />
-            <Route path="/dashboard/insurance" element={<ServicePage />} />
-            <Route path="/dashboard/payments" element={<ServicePage />} />
-            <Route path="/dashboard/services/*" element={<ServicePage />} />
-            <Route path="/services/:slug" element={<ServicePage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/settings" element={<Settings />} />
+              <Route path="/dashboard/accounts" element={<ServicePage />} />
+              <Route path="/dashboard/cards" element={<ServicePage />} />
+              <Route path="/dashboard/transactions" element={<ServicePage />} />
+              <Route path="/dashboard/investments" element={<ServicePage />} />
+              <Route path="/dashboard/loans" element={<ServicePage />} />
+              <Route path="/dashboard/insurance" element={<ServicePage />} />
+              <Route path="/dashboard/payments" element={<ServicePage />} />
+              <Route path="/dashboard/services/*" element={<ServicePage />} />
+              <Route path="/services/:slug" element={<ServicePage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </LanguageProvider>
     </ErrorBoundary>

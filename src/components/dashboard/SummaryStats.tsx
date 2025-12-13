@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Wallet, TrendingDown, TrendingUp, PiggyBank } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -13,7 +13,7 @@ interface StatCardProps {
   loading?: boolean;
 }
 
-const StatCard = ({ title, amount, change, changeType, icon: Icon, borderColor, loading }: StatCardProps) => {
+const StatCard = memo(({ title, amount, change, changeType, icon: Icon, borderColor, loading }: StatCardProps) => {
   const { t } = useLanguage();
   const borderColors = {
     blue: 'border-t-nmb-blue',
@@ -75,7 +75,7 @@ const StatCard = ({ title, amount, change, changeType, icon: Icon, borderColor, 
       )}
     </div>
   );
-};
+});
 
 interface SummaryStatsProps {
   totalBalance: number;
@@ -85,7 +85,7 @@ interface SummaryStatsProps {
   loading?: boolean;
 }
 
-export const SummaryStats = ({ 
+export const SummaryStats = memo(({ 
   totalBalance, 
   monthlySpending, 
   activeFDs, 
@@ -123,5 +123,5 @@ export const SummaryStats = ({
       />
     </div>
   );
-};
+});
 

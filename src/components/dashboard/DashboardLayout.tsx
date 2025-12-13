@@ -84,7 +84,9 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
             }
           },
           (error) => {
-            console.error('Error fetching profile:', error);
+            if (import.meta.env.DEV) {
+              console.error('Error fetching profile:', error);
+            }
           }
         );
       } else {
@@ -150,7 +152,10 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
       await signOut(auth);
       navigate('/login');
     } catch (error) {
-      console.error('Error signing out:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error signing out:', error);
+      }
+      // Could show a toast notification here for production
     }
   };
 

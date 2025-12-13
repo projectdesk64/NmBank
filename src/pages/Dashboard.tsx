@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, onSnapshot, collection, query, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -8,7 +8,6 @@ import { performTransfer } from '@/lib/transactionService';
 import { HeroSection } from '@/components/dashboard/HeroSection';
 import { SummaryStats } from '@/components/dashboard/SummaryStats';
 import { AccountsTabs } from '@/components/dashboard/AccountsTabs';
-import { SendMoney } from '@/components/dashboard/SendMoney';
 import { BillsRecharge } from '@/components/dashboard/BillsRecharge';
 import { QuickLinks } from '@/components/dashboard/QuickLinks';
 import { FavouriteLinks } from '@/components/dashboard/FavouriteLinks';
@@ -151,11 +150,13 @@ export const Dashboard = () => {
           }
         },
         (error) => {
-          console.error('Error fetching user data:', error);
+          if (import.meta.env.DEV) {
+            console.error('Error fetching user data:', error);
+          }
           setLoading(false);
           toast({
-            title: "Error",
-            description: "Failed to load user data. Please refresh the page.",
+            title: "Unable to Load Account",
+            description: "We couldn't load your account information. Please check your connection and try refreshing the page.",
             variant: "destructive",
           });
         }
@@ -174,10 +175,12 @@ export const Dashboard = () => {
           setTransactions(txs);
         },
         (error) => {
-          console.error('Error fetching transactions:', error);
+          if (import.meta.env.DEV) {
+            console.error('Error fetching transactions:', error);
+          }
           toast({
-            title: "Error",
-            description: "Failed to load transactions. Please refresh the page.",
+            title: "Transaction History Unavailable",
+            description: "We couldn't load your recent transactions. Please try refreshing the page or contact support if the issue persists.",
             variant: "destructive",
           });
         }
@@ -317,7 +320,7 @@ export const Dashboard = () => {
     }
 
     // Add FD accounts
-    fixedDeposits.forEach((fd, index) => {
+    fixedDeposits.forEach((fd) => {
       accountList.push({
         id: `fd-${fd.id}`,
         type: 'fd' as const,

@@ -12,6 +12,8 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(module =
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
 const ServicePage = lazy(() => import('./pages/ServicePage').then(module => ({ default: module.ServicePage })));
+const TransactionsPage = lazy(() => import('./pages/TransactionsPage').then(module => ({ default: module.TransactionsPage })));
+const FixedDeposits = lazy(() => import('./pages/FixedDeposits').then(module => ({ default: module.FixedDeposits })));
 const NotFound = lazy(() => import('./pages/NotFound')); // Already default export
 
 // Loading fallback component
@@ -40,7 +42,8 @@ function App() {
               <Route path="/dashboard/settings" element={<Settings />} />
               <Route path="/dashboard/accounts" element={<ServicePage />} />
               <Route path="/dashboard/cards" element={<ServicePage />} />
-              <Route path="/dashboard/transactions" element={<ServicePage />} />
+              <Route path="/dashboard/transactions" element={<TransactionsPage />} />
+              <Route path="/dashboard/fixed-deposits" element={<FixedDeposits />} />
               <Route path="/dashboard/investments" element={<ServicePage />} />
               <Route path="/dashboard/loans" element={<ServicePage />} />
               <Route path="/dashboard/insurance" element={<ServicePage />} />

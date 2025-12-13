@@ -315,7 +315,7 @@ Once Firebase is set up:
 2. ✅ Firestore database is created
 3. ✅ Security rules are configured
 4. ✅ Environment variables are set
-5. 🚀 You're ready to develop!
+5. You're ready to develop!
 
 ## Available Scripts
 

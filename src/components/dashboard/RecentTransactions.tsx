@@ -1,4 +1,5 @@
 import React, { useState, memo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowDownLeft, ArrowUpRight, ChevronRight, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -54,6 +55,7 @@ const translateDescription = (description: string, t: any): string => {
 
 export const RecentTransactions = memo(({ data, loading = false }: RecentTransactionsProps) => {
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   if (loading) {
@@ -74,7 +76,11 @@ export const RecentTransactions = memo(({ data, loading = false }: RecentTransac
       <div className="bg-white rounded-2xl p-8 shadow-large mb-8">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-heading font-bold text-nmb-charcoal">{t.dashboard.recentTransactions.title}</h3>
-          <Button variant="link" className="text-nmb-blue hover:text-nmb-blue/80 p-0 h-auto font-medium">
+          <Button 
+            variant="link" 
+            className="text-nmb-blue hover:text-nmb-blue/80 p-0 h-auto font-medium"
+            onClick={() => navigate('/dashboard/transactions')}
+          >
             {t.dashboard.recentTransactions.viewAll}
           </Button>
         </div>
@@ -83,7 +89,11 @@ export const RecentTransactions = memo(({ data, loading = false }: RecentTransac
           <div className="text-center py-12">
             <Receipt className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600 mb-2">{t.dashboard.recentTransactions.noRecentTransactions}</p>
-            <Button variant="outline" className="mt-4">
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              onClick={() => navigate('/dashboard/transactions')}
+            >
               {t.dashboard.recentTransactions.viewTransactionHistory}
             </Button>
           </div>

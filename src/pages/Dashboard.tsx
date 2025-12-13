@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, onSnapshot, collection, query, orderBy, limit, Timestamp } from 'firebase/firestore';
+import { doc, onSnapshot, collection, query, orderBy, limit, Timestamp, runTransaction, arrayUnion, addDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ import { BillsRecharge } from '@/components/dashboard/BillsRecharge';
 import { QuickLinks } from '@/components/dashboard/QuickLinks';
 import { FavouriteLinks } from '@/components/dashboard/FavouriteLinks';
 import { RecentTransactions, Transaction as RecentTransaction } from '@/components/dashboard/RecentTransactions';
+import { AccountDetailsModal } from '@/components/dashboard/AccountDetailsModal';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatCurrency } from '@/lib/utils';
@@ -114,6 +115,7 @@ export const Dashboard = () => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [showBalance, setShowBalance] = useState(true);
+  const [isFDModalOpen, setIsFDModalOpen] = useState(false);
   
   // Data states
   const [balance, setBalance] = useState<number>(0);
@@ -227,6 +229,85 @@ export const Dashboard = () => {
     }
   };
 
+  const handleCreateFD = async (amount: number) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "User not authenticated. Please log in again.",
+        variant: "destructive",
+      });
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      const userRef = doc(db, "users", user.uid);
+      
+      // Calculate maturity date (1 year from now)
+      const maturityDate = new Date();
+      maturityDate.setFullYear(maturityDate.getFullYear() + 1);
+      const maturityDateISO = maturityDate.toISOString();
+
+      // Create new FD object
+      const newFD = {
+        id: `FD-${Date.now()}`,
+        principal: amount,
+        interestRate: "7.10",
+        maturityDate: maturityDateISO,
+        status: "Active",
+      };
+
+      // Create transaction record
+      const newTransaction = {
+        description: `Fixed Deposit - ${newFD.id}`,
+        amount: amount,
+        type: "debit",
+        category: "Investment",
+        date: Timestamp.now(),
+        status: "success",
+      };
+
+      await runTransaction(db, async (transaction) => {
+        const userSnap = await transaction.get(userRef);
+        
+        if (!userSnap.exists()) {
+          throw new Error("User not found");
+        }
+
+        const data = userSnap.data();
+        const currentBalance = data?.balance || 0;
+
+        if (amount > currentBalance) {
+          throw new Error("Insufficient balance");
+        }
+
+        // Update user document
+        transaction.update(userRef, {
+          balance: currentBalance - amount,
+          fixedDeposits: arrayUnion(newFD),
+          transactions: arrayUnion(newTransaction),
+        });
+      });
+
+      // Add transaction to subcollection (for transaction history)
+      const transactionsRef = collection(userRef, "transactions");
+      await addDoc(transactionsRef, newTransaction);
+
+      toast({
+        title: "Fixed Deposit Created",
+        description: `Successfully created FD of ${formatCurrency(amount, language)}`,
+      });
+      setIsFDModalOpen(false);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create fixed deposit. Please try again.';
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const lastLoginDate = profile?.joinedAt ? formatDate(profile.joinedAt, language) : 'N/A';
   const totalFD = fixedDeposits?.reduce((sum, fd) => sum + (fd?.principal || 0), 0) || 0;
   const activeFDCount = fixedDeposits?.filter(fd => fd?.status === 'active').length || 0;
@@ -319,17 +400,17 @@ export const Dashboard = () => {
       });
     }
 
-    // Add FD accounts
-    fixedDeposits.forEach((fd) => {
+    // Add single FD summary tab (aggregates all FDs)
+    if (fixedDeposits && fixedDeposits.length > 0) {
       accountList.push({
-        id: `fd-${fd.id}`,
+        id: 'fd-summary',
         type: 'fd' as const,
-        accountNumber: `FD${fd.id.slice(0, 8)}`,
-        balance: fd.principal,
-        interestRate: fd.interestRate,
-        maturityDate: fd.maturityDate,
+        accountNumber: `Total Active: ${fixedDeposits.length}`,
+        balance: totalFD,
+        interestRate: fixedDeposits[0]?.interestRate || '7.10',
+        maturityDate: 'Various',
       });
-    });
+    }
 
     return accountList;
   }, [accountDetails, balance, fixedDeposits]);
@@ -404,6 +485,20 @@ export const Dashboard = () => {
               loading={loading}
               sendMoneyAccounts={sendMoneyAccounts}
               onTransfer={handleTransfer}
+              onManageFDs={() => setIsFDModalOpen(true)}
+              onViewDetails={(accountType) => {
+                if (accountType === 'fd') {
+                  navigate('/dashboard/fixed-deposits');
+                } else if (accountType === 'savings' || accountType === 'current') {
+                  // Show savings account details
+                  if (accountDetails) {
+                    toast({
+                      title: `${accountType === 'current' ? 'Current' : 'Savings'} Account Details`,
+                      description: `Account: ${accountDetails.accountNumber} | IFSC: ${accountDetails.ifsc} | Branch: ${accountDetails.branch}`,
+                    });
+                  }
+                }
+              }}
             />
           </div>
         )}
@@ -430,6 +525,15 @@ export const Dashboard = () => {
           />
         </div>
       </div>
+
+      {/* Account Details Modal */}
+      <AccountDetailsModal
+        isOpen={isFDModalOpen}
+        onClose={() => setIsFDModalOpen(false)}
+        balance={balance}
+        fixedDeposits={fixedDeposits}
+        onCreateFD={handleCreateFD}
+      />
     </DashboardLayout>
   );
 };

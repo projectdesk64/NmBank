@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { AnimatedTabs, Tab } from '@/components/ui/animated-tabs';
 import { SpendingPieChart } from '@/components/dashboard/SpendingPieChart';
 import { SendMoney } from '@/components/dashboard/SendMoney';
@@ -30,6 +31,8 @@ interface AccountsTabsProps {
     balance: number;
   }>;
   onTransfer?: (from: string, to: string, amount: number) => Promise<void>;
+  onViewDetails?: (accountType: 'savings' | 'current' | 'fd') => void;
+  onManageFDs?: () => void;
 }
 
 const formatAccountNumber = (accountNumber: string, revealed: boolean) => {
@@ -73,6 +76,8 @@ export const AccountsTabs = ({
   loading = false,
   sendMoneyAccounts,
   onTransfer,
+  onViewDetails,
+  onManageFDs,
 }: AccountsTabsProps) => {
   const { t, language } = useLanguage();
   const [revealedAccounts, setRevealedAccounts] = useState<Set<string>>(new Set());
@@ -285,6 +290,22 @@ export const AccountsTabs = ({
                  </>
                )}
              </div>
+
+             {/* Footer: View Details Button */}
+             {onViewDetails && (
+               <div className="mt-6 pt-6 border-t border-gray-100">
+                 <Button
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     onViewDetails(account.type);
+                   }}
+                   variant="outline"
+                   className="w-full border-nmb-maroon/30 text-nmb-maroon hover:bg-nmb-maroon/10 hover:border-nmb-maroon transition-colors"
+                 >
+                   View Details
+                 </Button>
+               </div>
+             )}
           </div>
         </div>
       ),
@@ -300,22 +321,31 @@ export const AccountsTabs = ({
           <p className="text-sm text-gray-500 mt-1">{t.dashboard.accounts.manageAndView}</p>
         </div>
 
-        {/* Toggle Balance */}
-        <div className="flex items-center gap-3 bg-white rounded-lg px-4 py-2.5 border border-nmb-mist shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-2">
-            {showBalance ? (
-              <Eye className="h-4 w-4 text-gray-600" />
-            ) : (
-              <EyeOff className="h-4 w-4 text-gray-400" />
-            )}
-            <Label
-              htmlFor="balance-toggle"
-              className="text-sm font-medium text-nmb-charcoal cursor-pointer select-none"
-            >
-              {showBalance ? t.dashboard.accounts.hideBalance : t.dashboard.accounts.showBalance}
-            </Label>
+        <div className="flex items-center gap-3">
+          {/* Manage FDs Button */}
+          {onManageFDs && accounts.some(acc => acc.type === 'fd') && (
+            <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-2.5 border border-nmb-mist shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={onManageFDs}>
+              <span className="text-sm font-medium text-nmb-charcoal">Manage FDs</span>
+            </div>
+          )}
+
+          {/* Toggle Balance */}
+          <div className="flex items-center gap-3 bg-white rounded-lg px-4 py-2.5 border border-nmb-mist shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-2">
+              {showBalance ? (
+                <Eye className="h-4 w-4 text-gray-600" />
+              ) : (
+                <EyeOff className="h-4 w-4 text-gray-400" />
+              )}
+              <Label
+                htmlFor="balance-toggle"
+                className="text-sm font-medium text-nmb-charcoal cursor-pointer select-none"
+              >
+                {showBalance ? t.dashboard.accounts.hideBalance : t.dashboard.accounts.showBalance}
+              </Label>
+            </div>
+            <Switch id="balance-toggle" checked={showBalance} onCheckedChange={onToggleBalance} />
           </div>
-          <Switch id="balance-toggle" checked={showBalance} onCheckedChange={onToggleBalance} />
         </div>
       </div>
 

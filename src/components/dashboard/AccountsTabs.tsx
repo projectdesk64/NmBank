@@ -30,6 +30,7 @@ interface AccountsTabsProps {
     type: string;
     balance: number;
   }>;
+  savingsAccountNumber?: string;
   onTransfer?: (from: string, to: string, amount: number) => Promise<void>;
   onViewDetails?: (accountType: 'savings' | 'current' | 'fd') => void;
   onManageFDs?: () => void;
@@ -75,6 +76,7 @@ export const AccountsTabs = ({
   onToggleBalance,
   loading = false,
   sendMoneyAccounts,
+  savingsAccountNumber,
   onTransfer,
   onViewDetails,
   onManageFDs,
@@ -166,23 +168,42 @@ export const AccountsTabs = ({
                     {t.dashboard.accounts.accountNumber}
                   </p>
                   <div className="flex items-center gap-3">
-                    <p className="text-xl font-mono font-semibold text-nmb-charcoal tracking-wider">
-                      {formatAccountNumber(account.accountNumber, isRevealed)}
-                    </p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleReveal(account.id);
-                      }}
-                      className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors group/eye"
-                      aria-label={isRevealed ? 'Hide account number' : 'Reveal account number'}
-                    >
-                      {isRevealed ? (
-                        <EyeOff className="h-4 w-4 text-gray-600 group-hover/eye:text-nmb-charcoal transition-colors" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-gray-400 group-hover/eye:text-nmb-charcoal transition-colors" />
-                      )}
-                    </button>
+                    {(() => {
+                      // Check if accountNumber is a text label (not a numeric account number)
+                      const isTextLabel = !/^\d/.test(account.accountNumber) && !account.accountNumber.includes('****');
+                      const displayText = isTextLabel 
+                        ? account.accountNumber 
+                        : formatAccountNumber(account.accountNumber, isRevealed);
+                      
+                      return (
+                        <>
+                          <p className={cn(
+                            "text-xl font-semibold text-nmb-charcoal",
+                            isTextLabel 
+                              ? "font-sans font-medium tracking-normal" 
+                              : "font-mono tracking-wider"
+                          )}>
+                            {displayText}
+                          </p>
+                          {!isTextLabel && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleReveal(account.id);
+                              }}
+                              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors group/eye"
+                              aria-label={isRevealed ? 'Hide account number' : 'Reveal account number'}
+                            >
+                              {isRevealed ? (
+                                <EyeOff className="h-4 w-4 text-gray-600 group-hover/eye:text-nmb-charcoal transition-colors" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-gray-400 group-hover/eye:text-nmb-charcoal transition-colors" />
+                              )}
+                            </button>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -364,6 +385,7 @@ export const AccountsTabs = ({
               accounts={sendMoneyAccounts}
               onTransfer={onTransfer}
               loading={loading}
+              savingsAccountNumber={savingsAccountNumber}
             />
           )}
         </div>

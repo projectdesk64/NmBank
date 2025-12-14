@@ -309,8 +309,11 @@ export const Dashboard = () => {
   };
 
   const lastLoginDate = profile?.joinedAt ? formatDate(profile.joinedAt, language) : 'N/A';
-  const totalFD = fixedDeposits?.reduce((sum, fd) => sum + (fd?.principal || 0), 0) || 0;
-  const activeFDCount = fixedDeposits?.filter(fd => fd?.status === 'active').length || 0;
+  
+  // Filter only active deposits
+  const activeDeposits = fixedDeposits?.filter(fd => fd?.status === 'Active' || fd?.status === 'active') || [];
+  const totalFD = activeDeposits.reduce((sum, fd) => sum + (fd?.principal || 0), 0);
+  const activeFDCount = activeDeposits.length;
 
   // Calculate monthly spending (debits from current month)
   const monthlySpending = useMemo(() => {
@@ -400,17 +403,19 @@ export const Dashboard = () => {
       });
     }
 
-    // Add single FD summary tab (aggregates all FDs)
-    if (fixedDeposits && fixedDeposits.length > 0) {
-      accountList.push({
-        id: 'fd-summary',
-        type: 'fd' as const,
-        accountNumber: `Total Active: ${fixedDeposits.length}`,
-        balance: totalFD,
-        interestRate: fixedDeposits[0]?.interestRate || '7.10',
-        maturityDate: 'Various',
-      });
-    }
+    // Filter active deposits for FD summary
+    const activeFDs = fixedDeposits?.filter(fd => fd?.status === 'Active' || fd?.status === 'active') || [];
+    const activeFDTotal = activeFDs.reduce((sum, fd) => sum + (fd?.principal || 0), 0);
+
+    // Always add FD summary tab with dynamic labeling
+    accountList.push({
+      id: 'fd-summary',
+      type: 'fd' as const,
+      accountNumber: activeFDs.length === 0 ? 'Start Investment' : `Total Active: ${activeFDs.length}`,
+      balance: activeFDs.length === 0 ? 0 : activeFDTotal,
+      interestRate: activeFDs.length === 0 ? 'Up to 8.5%' : (activeFDs[0]?.interestRate || '7.10'),
+      maturityDate: activeFDs.length === 0 ? 'N/A' : 'Various',
+    });
 
     return accountList;
   }, [accountDetails, balance, fixedDeposits]);
@@ -431,13 +436,29 @@ export const Dashboard = () => {
 
   // Prepare accounts for SendMoney component
   const sendMoneyAccounts = useMemo(() => {
-    if (!accountDetails) return [];
-    return [{
-      accountNumber: accountDetails.accountNumber,
-      type: accountDetails.type,
-      balance: balance,
-    }];
-  }, [accountDetails, balance]);
+    const accountList = [];
+    
+    // Add savings/current account
+    if (accountDetails) {
+      accountList.push({
+        accountNumber: accountDetails.accountNumber,
+        type: accountDetails.type,
+        balance: balance,
+      });
+    }
+
+    // Add individual Fixed Deposit accounts
+    const activeFDs = fixedDeposits?.filter(fd => fd?.status === 'Active' || fd?.status === 'active') || [];
+    activeFDs.forEach((fd) => {
+      accountList.push({
+        accountNumber: fd.id, // Use FD ID as identifier
+        type: 'Fixed Deposit',
+        balance: fd.principal,
+      });
+    });
+
+    return accountList;
+  }, [accountDetails, balance, fixedDeposits]);
 
   if (loading) {
     return (
@@ -484,6 +505,7 @@ export const Dashboard = () => {
               onToggleBalance={() => setShowBalance(!showBalance)}
               loading={loading}
               sendMoneyAccounts={sendMoneyAccounts}
+              savingsAccountNumber={accountDetails?.accountNumber}
               onTransfer={handleTransfer}
               onManageFDs={() => setIsFDModalOpen(true)}
               onViewDetails={(accountType) => {

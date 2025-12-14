@@ -81,6 +81,31 @@ const setupGlobalErrorHandlers = () => {
 // Setup error handlers
 setupGlobalErrorHandlers();
 
+// Global scrollbar preservation - prevent any component from hiding scrollbar
+// This runs continuously to ensure scrollbar stays visible
+const preserveScrollbar = () => {
+  // Remove data-scroll-locked attributes
+  if (document.body.hasAttribute('data-scroll-locked')) {
+    document.body.removeAttribute('data-scroll-locked');
+  }
+  if (document.documentElement.hasAttribute('data-scroll-locked')) {
+    document.documentElement.removeAttribute('data-scroll-locked');
+  }
+  
+  // Only prevent overflow:hidden if not a dialog (dialogs should lock scroll)
+  if (!document.body.classList.contains('dialog-open')) {
+    if (document.body.style.overflow === 'hidden') {
+      document.body.style.overflow = 'scroll';
+    }
+    if (document.documentElement.style.overflow === 'hidden') {
+      document.documentElement.style.overflow = 'scroll';
+    }
+  }
+};
+
+// Run preservation check every 50ms (less aggressive than per-frame but still responsive)
+setInterval(preserveScrollbar, 50);
+
 const rootElement = document.getElementById("root");
 if (!rootElement) {
   throw new Error("Root element not found. Make sure there is a <div id='root'></div> in your HTML.");

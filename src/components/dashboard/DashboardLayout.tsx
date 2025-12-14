@@ -3,7 +3,7 @@ import { Search, Headphones, Bell, ArrowRight, Phone, Mail } from 'lucide-react'
 import { onAuthStateChanged, User as FirebaseUser, signOut } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import nmbLogo from '@/assets/nmb-logo.svg';
 import { Footer } from '@/components/layout/Footer';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -193,10 +193,10 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
         <div className="max-w-[1400px] mx-auto px-6 lg:px-10 h-full flex items-center justify-between">
           {/* Left: Logo + Classic */}
           <div className="flex items-center gap-3">
-            <div className="flex flex-col items-center">
+            <Link to="/dashboard" className="flex flex-col items-center cursor-pointer hover:opacity-90 transition-opacity">
               <img src={nmbLogo} alt="NMB Logo" className="h-10 w-auto" />
               <span className="text-nmb-orange font-sans text-sm font-medium mt-1">New Moscow Bank</span>
-            </div>
+            </Link>
           </div>
 
           {/* Center: Search Pill */}

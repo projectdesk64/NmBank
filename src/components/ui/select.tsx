@@ -4,7 +4,46 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const Select = SelectPrimitive.Root;
+// Custom Select Root wrapper that prevents scroll locking
+const Select = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>
+>(({ onOpenChange, ...props }, ref) => {
+  // Intercept open/close to prevent scroll locking
+  const handleOpenChange = React.useCallback((open: boolean) => {
+    // Immediately prevent scroll locking
+    const preventLock = () => {
+      // Remove data-scroll-locked attributes
+      if (document.body.hasAttribute('data-scroll-locked')) {
+        document.body.removeAttribute('data-scroll-locked');
+      }
+      if (document.documentElement.hasAttribute('data-scroll-locked')) {
+        document.documentElement.removeAttribute('data-scroll-locked');
+      }
+      // Force scrollbar to remain visible
+      if (document.body.style.overflow === 'hidden' || document.body.style.overflow === '') {
+        document.body.style.overflow = 'scroll';
+      }
+      if (document.documentElement.style.overflow === 'hidden' || document.documentElement.style.overflow === '') {
+        document.documentElement.style.overflow = 'scroll';
+      }
+    };
+    
+    // Call original handler
+    onOpenChange?.(open);
+    
+    // Prevent scroll lock immediately and continuously
+    preventLock();
+    if (open) {
+      // While open, continuously check and fix
+      const interval = setInterval(preventLock, 10);
+      setTimeout(() => clearInterval(interval), 100); // Stop after 100ms of continuous checking
+    }
+  }, [onOpenChange]);
+  
+  return <SelectPrimitive.Root {...props} ref={ref} onOpenChange={handleOpenChange} />;
+});
+Select.displayName = SelectPrimitive.Root.displayName;
 
 const SelectGroup = SelectPrimitive.Group;
 
@@ -69,26 +108,69 @@ const SelectContent = React.forwardRef<
     const contentElement = contentRef.current;
     if (!contentElement) return;
 
-    // Store original body overflow style
-    const originalOverflow = document.body.style.overflow || '';
+    // Store original body styles from computed styles (not inline styles)
+    const computedStyle = window.getComputedStyle(document.body);
+    const originalOverflow = computedStyle.overflow;
+    const originalPaddingRight = computedStyle.paddingRight;
+    const originalBodyOverflowStyle = document.body.style.overflow || '';
+    const originalBodyPaddingRightStyle = document.body.style.paddingRight || '';
 
     // Function to ensure scrollbar remains visible - prevent body scroll lock
     const ensureScrollbarVisible = () => {
-      // Ensure body overflow is never set to 'hidden' when Select is open
-      // Radix Select doesn't lock scroll by default, but ensure it stays that way
-      if (document.body.style.overflow === 'hidden') {
-        document.body.style.overflow = originalOverflow || '';
+      // Remove data-scroll-locked attributes that Radix might add
+      if (document.body.hasAttribute('data-scroll-locked')) {
+        document.body.removeAttribute('data-scroll-locked');
+      }
+      if (document.documentElement.hasAttribute('data-scroll-locked')) {
+        document.documentElement.removeAttribute('data-scroll-locked');
+      }
+      
+      // Aggressively prevent overflow:hidden on both body and html
+      if (document.body.style.overflow === 'hidden' || document.body.style.overflow === '') {
+        // Restore to original or use 'scroll' to ensure scrollbar is always visible
+        document.body.style.overflow = originalBodyOverflowStyle || originalOverflow || 'scroll';
+      }
+      if (document.documentElement.style.overflow === 'hidden' || document.documentElement.style.overflow === '') {
+        document.documentElement.style.overflow = 'scroll';
+      }
+      
+      // Prevent padding-right changes that might affect layout
+      if (document.body.style.paddingRight && document.body.style.paddingRight !== originalBodyPaddingRightStyle) {
+        document.body.style.paddingRight = originalBodyPaddingRightStyle;
       }
     };
 
+    // Continuous monitoring with interval (more aggressive)
+    let checkInterval: NodeJS.Timeout | null = null;
+    
     // Monitor for state changes on the content element
     const observer = new MutationObserver(() => {
       const state = contentElement.getAttribute('data-state');
       if (state === 'open') {
-        // When Select opens, ensure body scroll is not locked
+        // Immediately ensure scrollbar is visible
         ensureScrollbarVisible();
-        // Use requestAnimationFrame to check again after any potential style changes
-        requestAnimationFrame(ensureScrollbarVisible);
+        
+        // Start continuous checking while open
+        if (checkInterval) {
+          clearInterval(checkInterval);
+        }
+        checkInterval = setInterval(() => {
+          ensureScrollbarVisible();
+        }, 16); // Check every frame (~60fps)
+        
+        // Also use requestAnimationFrame for immediate checks
+        requestAnimationFrame(() => {
+          ensureScrollbarVisible();
+          setTimeout(ensureScrollbarVisible, 0);
+          setTimeout(ensureScrollbarVisible, 10);
+          setTimeout(ensureScrollbarVisible, 50);
+        });
+      } else if (state === 'closed') {
+        // Stop checking when closed
+        if (checkInterval) {
+          clearInterval(checkInterval);
+          checkInterval = null;
+        }
       }
     });
 
@@ -98,18 +180,39 @@ const SelectContent = React.forwardRef<
       attributeFilter: ['data-state']
     });
 
+    // Also observe body style changes directly with immediate callback
+    const bodyObserver = new MutationObserver(() => {
+      ensureScrollbarVisible();
+    });
+
+    bodyObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['style'],
+      attributeOldValue: true
+    });
+
     // Check initial state
     const initialState = contentElement.getAttribute('data-state');
     if (initialState === 'open') {
       ensureScrollbarVisible();
+      checkInterval = setInterval(() => {
+        ensureScrollbarVisible();
+      }, 16);
     }
 
     // Cleanup
     return () => {
       observer.disconnect();
-      // Restore original overflow only if it was changed
-      if (document.body.style.overflow !== originalOverflow) {
-        document.body.style.overflow = originalOverflow;
+      bodyObserver.disconnect();
+      if (checkInterval) {
+        clearInterval(checkInterval);
+      }
+      // Restore original styles only if they were changed
+      if (document.body.style.overflow !== originalBodyOverflowStyle) {
+        document.body.style.overflow = originalBodyOverflowStyle;
+      }
+      if (document.body.style.paddingRight !== originalBodyPaddingRightStyle) {
+        document.body.style.paddingRight = originalBodyPaddingRightStyle;
       }
     };
   }, []);
@@ -131,6 +234,15 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         ref={combinedRef}
+        modal={false}
+        onOpenAutoFocus={(e) => {
+          // Prevent any focus-related scroll locking
+          e.preventDefault();
+        }}
+        onCloseAutoFocus={(e) => {
+          // Prevent any focus-related scroll locking
+          e.preventDefault();
+        }}
         className={cn(
           "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
           position === "popper" &&

@@ -16,6 +16,7 @@ import { AccountDetailsModal } from '@/components/dashboard/AccountDetailsModal'
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatCurrency } from '@/lib/utils';
+import { currentUser as mockUser } from '@/data/mockData';
 
 interface Profile {
   name: string;
@@ -109,20 +110,97 @@ const formatTransactionDate = (timestamp: TimestampType, language: 'en' | 'ru'):
   }
 };
 
+// Format transaction date from ISO string (for mock data)
+const formatTransactionDateFromISO = (dateString: string, language: 'en' | 'ru'): string => {
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const transactionDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const locale = language === 'ru' ? 'ru-RU' : 'en-IN';
+    
+    if (transactionDate.getTime() === today.getTime()) {
+      const todayText = language === 'ru' ? 'Сегодня' : 'Today';
+      return `${todayText}, ${date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: language === 'en' })}`;
+    } else if (transactionDate.getTime() === yesterday.getTime()) {
+      const yesterdayText = language === 'ru' ? 'Вчера' : 'Yesterday';
+      return `${yesterdayText}, ${date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: language === 'en' })}`;
+    } else {
+      return new Intl.DateTimeFormat(locale, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: language === 'en',
+      }).format(date);
+    }
+  } catch (error) {
+    return 'N/A';
+  }
+};
+
 export const Dashboard = () => {
   const { language } = useLanguage();
   const navigate = useNavigate();
   const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Set to false since we're using mock data
   const [showBalance, setShowBalance] = useState(true);
   const [isFDModalOpen, setIsFDModalOpen] = useState(false);
   
-  // Data states
+  // Data states (keeping for Firebase compatibility, but using mock data as primary)
   const [balance, setBalance] = useState<number>(0);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [accountDetails, setAccountDetails] = useState<AccountDetails | null>(null);
   const [fixedDeposits, setFixedDeposits] = useState<FixedDeposit[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  // Calculate totals from mock data
+  const mockTotalBalance = useMemo(() => {
+    // Sum all account balances (convert USD to RUB if needed, or just sum RUB accounts)
+    // For simplicity, we'll sum all balances regardless of currency
+    return mockUser.accounts.reduce((sum, acc) => {
+      // Convert USD to RUB at approximate rate (1 USD = 100 RUB) or just sum RUB
+      if (acc.currency === 'USD') {
+        return sum + (acc.balance * 100); // Approximate conversion
+      }
+      return sum + acc.balance;
+    }, 0);
+  }, []);
+
+  // Active loans count (available for future use)
+  // const mockActiveLoans = useMemo(() => {
+  //   return mockUser.loans.filter(loan => loan.status === 'Active').length;
+  // }, []);
+
+  // Total deposits value (available for future use)
+  // const mockTotalDeposits = useMemo(() => {
+  //   return mockUser.deposits
+  //     .filter(dep => dep.status === 'Active')
+  //     .reduce((sum, dep) => sum + dep.principal, 0);
+  // }, []);
+
+  const mockActiveDepositsCount = useMemo(() => {
+    return mockUser.deposits.filter(dep => dep.status === 'Active').length;
+  }, []);
+
+  // Get recent transactions from mock data (first 5, sorted by date descending)
+  const mockRecentTransactions = useMemo(() => {
+    return [...mockUser.transactions]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5)
+      .map(tx => ({
+        id: tx.id,
+        description: tx.description,
+        amount: tx.amount,
+        date: formatTransactionDateFromISO(tx.date, language),
+        type: tx.type as 'credit' | 'debit',
+        referenceId: tx.id,
+        category: tx.category,
+      }));
+  }, [language]);
   
   useEffect(() => {
     let unsubscribeUser: (() => void) | null = null;
@@ -310,53 +388,62 @@ export const Dashboard = () => {
 
   const lastLoginDate = profile?.joinedAt ? formatDate(profile.joinedAt, language) : 'N/A';
   
-  // Filter only active deposits
-  const activeDeposits = fixedDeposits?.filter(fd => fd?.status === 'Active' || fd?.status === 'active') || [];
-  const totalFD = activeDeposits.reduce((sum, fd) => sum + (fd?.principal || 0), 0);
-  const activeFDCount = activeDeposits.length;
+  // Filter only active deposits (keeping for Firebase compatibility, but using mock data primarily)
+  // const activeDeposits = fixedDeposits?.filter(fd => fd?.status === 'Active' || fd?.status === 'active') || [];
+  // const totalFD = activeDeposits.reduce((sum, fd) => sum + (fd?.principal || 0), 0);
+  // const activeFDCount = activeDeposits.length;
 
-  // Calculate monthly spending (debits from current month)
+  // Calculate monthly spending (debits from current month) - using mock data
   const monthlySpending = useMemo(() => {
-    if (!transactions || transactions.length === 0) return 0;
-    
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     
-    return transactions
+    // Calculate from mock data
+    const mockSpending = mockUser.transactions
       .filter(tx => {
-        if (!tx.date) return false;
         try {
-          const txDate = tx.date instanceof Timestamp 
-            ? tx.date.toDate() 
-            : tx.date instanceof Date 
-              ? tx.date 
-              : new Date(tx.date);
+          const txDate = new Date(tx.date);
           return txDate >= startOfMonth && tx.type === 'debit';
         } catch {
           return false;
         }
       })
       .reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0);
+    
+    // Fallback to Firebase transactions if available and mock data is empty
+    if (mockSpending === 0 && transactions && transactions.length > 0) {
+      return transactions
+        .filter(tx => {
+          if (!tx.date) return false;
+          try {
+            const txDate = tx.date instanceof Timestamp 
+              ? tx.date.toDate() 
+              : tx.date instanceof Date 
+                ? tx.date 
+                : new Date(tx.date);
+            return txDate >= startOfMonth && tx.type === 'debit';
+          } catch {
+            return false;
+          }
+        })
+        .reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0);
+    }
+    
+    return mockSpending;
   }, [transactions]);
 
-  // Calculate spending change (compare current month with previous month)
+  // Calculate spending change (compare current month with previous month) - using mock data
   const spendingChange = useMemo(() => {
-    if (!transactions || transactions.length === 0) return 0;
-    
     const now = new Date();
     const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
-    const currentMonthSpending = transactions
+    // Calculate from mock data
+    const currentMonthSpending = mockUser.transactions
       .filter(tx => {
-        if (!tx.date) return false;
         try {
-          const txDate = tx.date instanceof Timestamp 
-            ? tx.date.toDate() 
-            : tx.date instanceof Date 
-              ? tx.date 
-              : new Date(tx.date);
+          const txDate = new Date(tx.date);
           return txDate >= startOfCurrentMonth && tx.type === 'debit';
         } catch {
           return false;
@@ -364,15 +451,10 @@ export const Dashboard = () => {
       })
       .reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0);
 
-    const previousMonthSpending = transactions
+    const previousMonthSpending = mockUser.transactions
       .filter(tx => {
-        if (!tx.date) return false;
         try {
-          const txDate = tx.date instanceof Timestamp 
-            ? tx.date.toDate() 
-            : tx.date instanceof Date 
-              ? tx.date 
-              : new Date(tx.date);
+          const txDate = new Date(tx.date);
           return txDate >= startOfPreviousMonth && txDate <= endOfPreviousMonth && tx.type === 'debit';
         } catch {
           return false;
@@ -386,25 +468,26 @@ export const Dashboard = () => {
 
     const change = ((currentMonthSpending - previousMonthSpending) / previousMonthSpending) * 100;
     return Math.round(change * 10) / 10; // Round to 1 decimal place
-  }, [transactions]);
+  }, []);
 
-  // Prepare accounts for carousel
+  // Prepare accounts for carousel (using mock data)
   const accounts = useMemo(() => {
     const accountList = [];
     
-    if (accountDetails) {
+    // Add mock accounts
+    mockUser.accounts.forEach((acc) => {
       accountList.push({
-        id: 'savings-1',
-        type: accountDetails.type.toLowerCase().includes('current') ? 'current' : 'savings' as 'savings' | 'current',
-        accountNumber: accountDetails.accountNumber,
-        balance: balance,
-        ifsc: accountDetails.ifsc,
-        branch: accountDetails.branch,
+        id: acc.id,
+        type: acc.type.toLowerCase() === 'checking' ? 'current' : 'savings' as 'savings' | 'current',
+        accountNumber: acc.accountNo,
+        balance: acc.balance,
+        currency: acc.currency,
+        iban: acc.iban,
       });
-    }
+    });
 
-    // Filter active deposits for FD summary
-    const activeFDs = fixedDeposits?.filter(fd => fd?.status === 'Active' || fd?.status === 'active') || [];
+    // Filter active deposits for FD summary (using mock data)
+    const activeFDs = mockUser.deposits.filter(dep => dep.status === 'Active');
     const activeFDTotal = activeFDs.reduce((sum, fd) => sum + (fd?.principal || 0), 0);
 
     // Always add FD summary tab with dynamic labeling
@@ -413,15 +496,19 @@ export const Dashboard = () => {
       type: 'fd' as const,
       accountNumber: activeFDs.length === 0 ? 'Start Investment' : `Total Active: ${activeFDs.length}`,
       balance: activeFDs.length === 0 ? 0 : activeFDTotal,
-      interestRate: activeFDs.length === 0 ? 'Up to 8.5%' : (activeFDs[0]?.interestRate || '7.10'),
+      interestRate: activeFDs.length === 0 ? 'Up to 8.5%' : (activeFDs[0]?.rate?.toString() || '7.10'),
       maturityDate: activeFDs.length === 0 ? 'N/A' : 'Various',
     });
 
     return accountList;
-  }, [accountDetails, balance, fixedDeposits]);
+  }, []);
 
-  // Transform transactions for RecentTransactions component
+  // Transform transactions for RecentTransactions component (fallback to Firebase if available)
   const transformedTransactions: RecentTransaction[] = useMemo(() => {
+    // Prefer mock data, fallback to Firebase transactions if available
+    if (mockRecentTransactions.length > 0) {
+      return mockRecentTransactions;
+    }
     if (!transactions || transactions.length === 0) return [];
     return transactions.map((tx) => ({
       id: tx?.id || '',
@@ -432,7 +519,7 @@ export const Dashboard = () => {
       referenceId: tx?.id || '',
       category: tx?.category || 'Other',
     }));
-  }, [transactions, language]);
+  }, [transactions, language, mockRecentTransactions]);
 
   // Prepare accounts for SendMoney component
   const sendMoneyAccounts = useMemo(() => {
@@ -489,9 +576,9 @@ export const Dashboard = () => {
 
         {/* Summary Stats */}
         <SummaryStats
-          totalBalance={balance + totalFD}
+          totalBalance={mockTotalBalance}
           monthlySpending={monthlySpending}
-          activeFDs={activeFDCount}
+          activeFDs={mockActiveDepositsCount}
           spendingChange={spendingChange}
           loading={loading}
         />
@@ -542,7 +629,7 @@ export const Dashboard = () => {
         {/* Recent Transactions */}
         <div className="mb-6">
           <RecentTransactions 
-            data={transformedTransactions} 
+            data={mockRecentTransactions.length > 0 ? mockRecentTransactions : transformedTransactions} 
             loading={loading}
           />
         </div>

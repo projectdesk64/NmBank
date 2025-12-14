@@ -3,7 +3,7 @@ import { Search, Headphones, Bell, ArrowRight, Phone, Mail } from 'lucide-react'
 import { onAuthStateChanged, User as FirebaseUser, signOut } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import nmbLogo from '@/assets/nmb-logo.svg';
 import { Footer } from '@/components/layout/Footer';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -61,6 +61,8 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isDashboardHome = location.pathname === '/dashboard';
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -283,7 +285,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
 
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 pt-[82px]">
+      <div className={`flex-1 ${isDashboardHome ? 'pt-20' : 'pt-28'}`}>
         {children}
       </div>
 

@@ -14,6 +14,9 @@ const Settings = lazy(() => import('./pages/Settings').then(module => ({ default
 const ServicePage = lazy(() => import('./pages/ServicePage').then(module => ({ default: module.ServicePage })));
 const TransactionsPage = lazy(() => import('./pages/TransactionsPage').then(module => ({ default: module.TransactionsPage })));
 const FixedDeposits = lazy(() => import('./pages/FixedDeposits').then(module => ({ default: module.FixedDeposits })));
+const Accounts = lazy(() => import('./pages/Accounts').then(module => ({ default: module.Accounts })));
+const Cards = lazy(() => import('./pages/Cards').then(module => ({ default: module.Cards })));
+const Loans = lazy(() => import('./pages/Loans').then(module => ({ default: module.Loans })));
 const NotFound = lazy(() => import('./pages/NotFound')); // Already default export
 
 // Loading fallback component
@@ -40,12 +43,12 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/settings" element={<Settings />} />
-              <Route path="/dashboard/accounts" element={<ServicePage />} />
-              <Route path="/dashboard/cards" element={<ServicePage />} />
+              <Route path="/dashboard/accounts" element={<Accounts />} />
+              <Route path="/dashboard/cards" element={<Cards />} />
               <Route path="/dashboard/transactions" element={<TransactionsPage />} />
               <Route path="/dashboard/fixed-deposits" element={<FixedDeposits />} />
               <Route path="/dashboard/investments" element={<ServicePage />} />
-              <Route path="/dashboard/loans" element={<ServicePage />} />
+              <Route path="/dashboard/loans" element={<Loans />} />
               <Route path="/dashboard/insurance" element={<ServicePage />} />
               <Route path="/dashboard/payments" element={<ServicePage />} />
               <Route path="/dashboard/services/*" element={<ServicePage />} />

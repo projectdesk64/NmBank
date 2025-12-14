@@ -1,20 +1,16 @@
-import { useState, useEffect } from 'react';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, onSnapshot, runTransaction, arrayUnion, Timestamp, collection, addDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileText, Calculator, TrendingUp, Receipt, Inbox } from 'lucide-react';
+import { currentUser, FixedDeposit as FixedDepositType } from '@/data/mockData';
 
 // Local translations
 const pageTranslations = {
@@ -100,21 +96,12 @@ const pageTranslations = {
   },
 };
 
-interface FixedDeposit {
-  id: string;
-  principal: number;
-  interestRate: string;
-  maturityDate: string;
-  status: string;
-}
-
 export const FixedDeposits = () => {
   const { language } = useLanguage();
-  const navigate = useNavigate();
-  const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [fixedDeposits, setFixedDeposits] = useState<FixedDeposit[]>([]);
-  const [balance, setBalance] = useState<number>(0);
+  const [fixedDeposits, setFixedDeposits] = useState<FixedDepositType[]>(currentUser.deposits);
+  const [balance] = useState<number>(
+    currentUser.accounts.reduce((sum, acc) => sum + acc.balance, 0)
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRatesOpen, setIsRatesOpen] = useState(false);
   const [isCalcOpen, setIsCalcOpen] = useState(false);
@@ -135,54 +122,6 @@ export const FixedDeposits = () => {
     }).format(amount);
   };
 
-  // Real-time subscription to user data
-  useEffect(() => {
-    let unsubscribeUser: (() => void) | null = null;
-
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        navigate('/login');
-        return;
-      }
-      setUser(currentUser);
-
-      // Subscribe to user document for real-time updates
-      const userRef = doc(db, 'users', currentUser.uid);
-      unsubscribeUser = onSnapshot(
-        userRef,
-        (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setBalance(data?.balance || 0);
-            // Handle null/undefined fixedDeposits as empty array
-            setFixedDeposits(data?.fixedDeposits || []);
-            setLoading(false);
-          } else {
-            setLoading(false);
-          }
-        },
-        (error) => {
-          if (import.meta.env.DEV) {
-            console.error('Error fetching user data:', error);
-          }
-          setLoading(false);
-          toast({
-            title: translations.error,
-            description: 'Unable to load account information. Please check your connection and try refreshing the page.',
-            variant: 'destructive',
-          });
-        }
-      );
-    });
-
-    return () => {
-      unsubscribe();
-      if (unsubscribeUser) {
-        unsubscribeUser();
-      }
-    };
-  }, [navigate, translations.error]);
-
   // Calculate total principal of active deposits
   const totalPrincipal = fixedDeposits
     .filter((fd) => fd.status === 'Active')
@@ -190,7 +129,7 @@ export const FixedDeposits = () => {
 
   // Filter deposits by status
   const activeDeposits = fixedDeposits.filter((fd) => fd.status === 'Active');
-  const closedDeposits = fixedDeposits.filter((fd) => fd.status !== 'Active');
+  const closedDeposits = fixedDeposits.filter((fd) => fd.status !== 'Active' && fd.status !== 'Matured');
 
   // Handle service button clicks
   const handleServiceClick = (service?: string) => {
@@ -224,16 +163,7 @@ export const FixedDeposits = () => {
   };
 
   // Handle FD closure
-  const handleCloseFD = async (fd: FixedDeposit) => {
-    if (!user) {
-      toast({
-        title: translations.error,
-        description: translations.userNotAuthenticated,
-        variant: 'destructive',
-      });
-      return;
-    }
-
+  const handleCloseFD = (fd: FixedDepositType) => {
     const confirmed = window.confirm(
       `Are you sure you want to close this deposit of ${formatRUB(fd.principal)}? The funds will be returned to your main balance.`
     );
@@ -241,73 +171,20 @@ export const FixedDeposits = () => {
       return;
     }
 
-    try {
-      const userRef = doc(db, 'users', user.uid);
-      
-      // Create transaction record
-      const newTransaction = {
-        description: language === 'ru' 
-          ? `Закрытие вклада - ${formatFDId(fd.id)}`
-          : `Closure of Deposit - ${formatFDId(fd.id)}`,
-        amount: fd.principal,
-        type: 'credit',
-        category: 'Investment',
-        date: Timestamp.now(),
-        status: 'success',
-      };
+    // Update local state
+    const updatedFDs = fixedDeposits.map((currentFD) =>
+      currentFD.id === fd.id ? { ...currentFD, status: 'Closed' as const } : currentFD
+    );
+    setFixedDeposits(updatedFDs);
 
-      await runTransaction(db, async (transaction) => {
-        const userSnap = await transaction.get(userRef);
-
-        if (!userSnap.exists()) {
-          throw new Error('User not found');
-        }
-
-        const data = userSnap.data();
-        const currentBalance = data?.balance || 0;
-        const currentFDs = data?.fixedDeposits || [];
-
-        // Update FD status to 'Closed' and credit balance
-        const updatedFDs = currentFDs.map((currentFD: FixedDeposit) =>
-          currentFD.id === fd.id ? { ...currentFD, status: 'Closed' } : currentFD
-        );
-
-        transaction.update(userRef, {
-          balance: currentBalance + fd.principal,
-          fixedDeposits: updatedFDs,
-          transactions: arrayUnion(newTransaction),
-        });
-      });
-
-      // Add transaction to subcollection
-      const transactionsRef = collection(userRef, 'transactions');
-      await addDoc(transactionsRef, newTransaction);
-
-      toast({
-        title: translations.depositClosed,
-        description: translations.depositClosedSuccess,
-      });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to close deposit. Please try again.';
-      toast({
-        title: translations.error,
-        description: errorMessage,
-        variant: 'destructive',
-      });
-    }
+    toast({
+      title: translations.depositClosed,
+      description: translations.depositClosedSuccess,
+    });
   };
 
   // Handle FD creation
-  const handleCreateFD = async () => {
-    if (!user) {
-      toast({
-        title: translations.error,
-        description: translations.userNotAuthenticated,
-        variant: 'destructive',
-      });
-      return;
-    }
-
+  const handleCreateFD = () => {
     const amountNum = parseFloat(amount);
     if (!amountNum || amountNum <= 0) {
       toast({
@@ -329,83 +206,38 @@ export const FixedDeposits = () => {
 
     setIsSubmitting(true);
 
-    try {
-      const userRef = doc(db, 'users', user.uid);
+    // Calculate maturity date (1 year from now)
+    const maturityDate = new Date();
+    maturityDate.setFullYear(maturityDate.getFullYear() + 1);
+    const maturityDateISO = maturityDate.toISOString();
 
-      // Calculate maturity date (1 year from now)
-      const maturityDate = new Date();
-      maturityDate.setFullYear(maturityDate.getFullYear() + 1);
-      const maturityDateISO = maturityDate.toISOString();
+    // Create new FD object
+    const newFD: FixedDepositType = {
+      id: `fd-${Date.now()}`,
+      certificateNo: `NMB-FD-${new Date().getFullYear()}-${String(fixedDeposits.length + 1).padStart(3, '0')}`,
+      principal: amountNum,
+      rate: 7.10,
+      maturityDate: maturityDateISO,
+      accruedInterest: 0,
+      status: 'Active',
+    };
 
-      // Create new FD object
-      const newFD = {
-        id: `FD-${Date.now()}`,
-        principal: amountNum,
-        interestRate: '7.10',
-        maturityDate: maturityDateISO,
-        status: 'Active',
-      };
+    // Update local state
+    setFixedDeposits([...fixedDeposits, newFD]);
 
-      // Create transaction record
-      const newTransaction = {
-        description: `Fixed Deposit - ${newFD.id}`,
-        amount: amountNum,
-        type: 'debit',
-        category: 'Investment',
-        date: Timestamp.now(),
-        status: 'success',
-      };
+    toast({
+      title: translations.fixedDepositCreated,
+      description: `${translations.successfullyCreated} ${formatRUB(amountNum)}`,
+    });
 
-      await runTransaction(db, async (transaction) => {
-        const userSnap = await transaction.get(userRef);
-
-        if (!userSnap.exists()) {
-          throw new Error('User not found');
-        }
-
-        const data = userSnap.data();
-        const currentBalance = data?.balance || 0;
-
-        if (amountNum > currentBalance) {
-          throw new Error(translations.insufficientBalance);
-        }
-
-        // Update user document
-        transaction.update(userRef, {
-          balance: currentBalance - amountNum,
-          fixedDeposits: arrayUnion(newFD),
-          transactions: arrayUnion(newTransaction),
-        });
-      });
-
-      // Add transaction to subcollection (for transaction history)
-      const transactionsRef = collection(userRef, 'transactions');
-      await addDoc(transactionsRef, newTransaction);
-
-      toast({
-        title: translations.fixedDepositCreated,
-        description: `${translations.successfullyCreated} ${formatRUB(amountNum)}`,
-      });
-
-      setIsModalOpen(false);
-      setAmount('');
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : translations.failedToCreate;
-      toast({
-        title: translations.error,
-        description: errorMessage,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    setIsModalOpen(false);
+    setAmount('');
+    setIsSubmitting(false);
   };
 
-  // Format FD ID
-  const formatFDId = (id: string): string => {
-    // Extract last 4 digits or use last 4 chars
-    const last4 = id.slice(-4);
-    return `NMB-FD-${last4}`;
+  // Format FD ID - use certificateNo from mock data
+  const formatFDId = (fd: FixedDepositType): string => {
+    return fd.certificateNo;
   };
 
   // Format maturity date
@@ -423,54 +255,13 @@ export const FixedDeposits = () => {
   };
 
   // Format interest rate
-  const formatInterestRate = (rate: string): string => {
-    // Remove % if present and add it back
-    const numRate = parseFloat(rate.replace('%', ''));
-    return isNaN(numRate) ? rate : `${numRate}%`;
+  const formatInterestRate = (rate: number): string => {
+    return `${rate}%`;
   };
 
-  // Loading skeleton
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-8">
-          <div className="space-y-6">
-            {/* Tier 1 Skeleton */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-8 w-48" />
-                  </div>
-                  <Skeleton className="h-10 w-40" />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Tier 2 Skeleton */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-24 w-full" />
-              ))}
-            </div>
-
-            {/* Tier 3 Skeleton */}
-            <Card>
-              <CardContent className="p-6">
-                <Skeleton className="h-10 w-full mb-4" />
-                <Skeleton className="h-64 w-full" />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   return (
-    <DashboardLayout>
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-8">
+      <DashboardLayout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tier 1: Summary Card */}
         <Card className="mb-6 bg-gradient-to-r from-white to-nmb-maroon/5 border-nmb-maroon/20">
           <CardContent className="p-6">
@@ -540,7 +331,7 @@ export const FixedDeposits = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <Button
             variant="outline"
-            className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-nmb-smoke transition-colors"
+            className="h-24 flex flex-col items-center justify-center gap-2 bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 transition-all"
             onClick={() => handleServiceClick()}
           >
             <FileText className="h-6 w-6 text-nmb-maroon" />
@@ -548,7 +339,7 @@ export const FixedDeposits = () => {
           </Button>
           <Button
             variant="outline"
-            className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-nmb-smoke transition-colors"
+            className="h-24 flex flex-col items-center justify-center gap-2 bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 transition-all"
             onClick={() => handleServiceClick()}
           >
             <Receipt className="h-6 w-6 text-nmb-maroon" />
@@ -556,7 +347,7 @@ export const FixedDeposits = () => {
           </Button>
           <Button
             variant="outline"
-            className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-nmb-smoke transition-colors"
+            className="h-24 flex flex-col items-center justify-center gap-2 bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 transition-all"
             onClick={() => handleServiceClick('rates')}
           >
             <TrendingUp className="h-6 w-6 text-nmb-maroon" />
@@ -564,7 +355,7 @@ export const FixedDeposits = () => {
           </Button>
           <Button
             variant="outline"
-            className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-nmb-smoke transition-colors"
+            className="h-24 flex flex-col items-center justify-center gap-2 bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-200 transition-all"
             onClick={() => handleServiceClick('calculator')}
           >
             <Calculator className="h-6 w-6 text-nmb-maroon" />
@@ -573,7 +364,7 @@ export const FixedDeposits = () => {
         </div>
 
         {/* Tier 3: Data Table */}
-        <Card>
+        <Card className="bg-white rounded-xl shadow-sm border border-gray-200">
           <CardHeader>
             <CardTitle>{translations.activeDeposits}</CardTitle>
           </CardHeader>
@@ -604,11 +395,11 @@ export const FixedDeposits = () => {
                       <TableBody>
                         {activeDeposits.map((fd) => (
                           <TableRow key={fd.id} className="hover:bg-gray-50 transition-colors">
-                            <TableCell className="font-medium text-nmb-charcoal">{formatFDId(fd.id)}</TableCell>
+                            <TableCell className="font-medium text-nmb-charcoal">{formatFDId(fd)}</TableCell>
                             <TableCell className="font-semibold">
                               {formatRUB(fd.principal)}
                             </TableCell>
-                            <TableCell>{formatInterestRate(fd.interestRate)}</TableCell>
+                            <TableCell>{formatInterestRate(fd.rate)}</TableCell>
                             <TableCell>{formatMaturityDate(fd.maturityDate)}</TableCell>
                             <TableCell>
                               <Button
@@ -647,11 +438,11 @@ export const FixedDeposits = () => {
                       <TableBody>
                         {closedDeposits.map((fd) => (
                           <TableRow key={fd.id} className="hover:bg-gray-50 transition-colors">
-                            <TableCell className="font-medium text-nmb-charcoal">{formatFDId(fd.id)}</TableCell>
+                            <TableCell className="font-medium text-nmb-charcoal">{formatFDId(fd)}</TableCell>
                             <TableCell className="font-semibold">
                               {formatRUB(fd.principal)}
                             </TableCell>
-                            <TableCell>{formatInterestRate(fd.interestRate)}</TableCell>
+                            <TableCell>{formatInterestRate(fd.rate)}</TableCell>
                             <TableCell>{formatMaturityDate(fd.maturityDate)}</TableCell>
                           </TableRow>
                         ))}

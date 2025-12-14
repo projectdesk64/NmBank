@@ -100,17 +100,17 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-x-hidden">
         <div
-          className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl animate-in fade-in-0 zoom-in-95"
+          className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl animate-in fade-in-0 zoom-in-95 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
-            <h2 className="text-2xl font-heading font-bold text-nmb-charcoal">{t.dashboard.customerDetails.customerProfile}</h2>
+          <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-200 gap-2">
+            <h2 className="text-lg sm:text-xl font-heading font-bold text-nmb-charcoal truncate">{t.dashboard.customerDetails.customerProfile}</h2>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-nmb-charcoal hover:bg-gray-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-nmb-maroon/50"
+              className="p-2 text-gray-400 hover:text-nmb-charcoal hover:bg-gray-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-nmb-maroon/50 flex-shrink-0"
               aria-label="Close"
             >
               <X className="h-5 w-5" />
@@ -118,41 +118,41 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
           </div>
 
           {/* Body */}
-          <div className="px-6 py-6 space-y-6">
+          <div className="px-4 sm:px-6 py-4 space-y-4 overflow-x-hidden">
             {/* Avatar and Name Section */}
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="border-4 border-nmb-maroon/20 rounded-full p-1">
+            <div className="flex flex-col items-center text-center space-y-2">
+              <div className="border-2 border-nmb-maroon/20 rounded-full p-0.5">
                 <UserAvatar
                   name={displayName}
                   image={userPhotoURL || (profile as any)?.image}
-                  size="xl"
+                  size="lg"
                 />
               </div>
-              <div>
-                <h3 className="text-3xl font-heading font-bold text-nmb-charcoal mb-2">
+              <div className="w-full min-w-0 px-2">
+                <h3 className="text-xl sm:text-2xl font-heading font-bold text-nmb-charcoal mb-1.5 break-words">
                   {displayName}
                 </h3>
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-full">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-semibold text-green-700">{t.dashboard.customerDetails.kycVerified}</span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                  <span className="text-xs sm:text-sm font-semibold text-green-700 whitespace-nowrap">{t.dashboard.customerDetails.kycVerified}</span>
                 </div>
               </div>
             </div>
 
             {/* Customer ID Section */}
             {profile?.customerId && (
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-2 block">
+              <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 overflow-hidden">
+                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1.5 block">
                   {t.dashboard.customerDetails.customerId}
                 </label>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-mono text-lg font-semibold text-nmb-charcoal">
+                <div className="flex items-center justify-between gap-2 min-w-0">
+                  <span className="font-mono text-sm sm:text-base font-semibold text-nmb-charcoal truncate min-w-0">
                     {profile.customerId}
                   </span>
                   <button
                     onClick={handleCopyCustomerId}
                     className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-lg transition-colors",
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors flex-shrink-0",
                       copied
                         ? "bg-green-50 text-green-700 border border-green-200"
                         : "bg-white text-nmb-maroon hover:bg-nmb-maroon/10 border border-gray-300"
@@ -161,13 +161,13 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
                   >
                     {copied ? (
                       <>
-                        <Check className="h-4 w-4" />
-                        <span className="text-sm font-medium">{t.dashboard.customerDetails.copied}</span>
+                        <Check className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span className="text-xs font-medium hidden sm:inline">{t.dashboard.customerDetails.copied}</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="h-4 w-4" />
-                        <span className="text-sm font-medium">{t.dashboard.customerDetails.copy}</span>
+                        <Copy className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span className="text-xs font-medium hidden sm:inline">{t.dashboard.customerDetails.copy}</span>
                       </>
                     )}
                   </button>
@@ -176,31 +176,31 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
             )}
 
             {/* Contact Information */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
                 {t.dashboard.customerDetails.contactInformation}
               </h4>
               
               {displayPhone && (
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="w-10 h-10 rounded-lg bg-nmb-maroon/10 flex items-center justify-center flex-shrink-0">
-                    <Phone className="h-5 w-5 text-nmb-maroon" />
+                <div className="flex items-center gap-2.5 p-2.5 bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                  <div className="w-9 h-9 rounded-lg bg-nmb-maroon/10 flex items-center justify-center flex-shrink-0">
+                    <Phone className="h-4 w-4 text-nmb-maroon" />
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 overflow-hidden">
                     <p className="text-xs text-gray-600 mb-0.5">{t.dashboard.customerDetails.phone}</p>
-                    <p className="text-sm font-medium text-nmb-charcoal">{displayPhone}</p>
+                    <p className="text-sm font-medium text-nmb-charcoal truncate">{displayPhone}</p>
                   </div>
                 </div>
               )}
 
               {displayEmail && (
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="w-10 h-10 rounded-lg bg-nmb-maroon/10 flex items-center justify-center flex-shrink-0">
-                    <Mail className="h-5 w-5 text-nmb-maroon" />
+                <div className="flex items-center gap-2.5 p-2.5 bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                  <div className="w-9 h-9 rounded-lg bg-nmb-maroon/10 flex items-center justify-center flex-shrink-0">
+                    <Mail className="h-4 w-4 text-nmb-maroon" />
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 overflow-hidden">
                     <p className="text-xs text-gray-600 mb-0.5">{t.dashboard.customerDetails.email}</p>
-                    <p className="text-sm font-medium text-nmb-charcoal break-words">{displayEmail}</p>
+                    <p className="text-sm font-medium text-nmb-charcoal break-all">{displayEmail}</p>
                   </div>
                 </div>
               )}
@@ -208,27 +208,27 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-5 border-t border-gray-200 flex flex-col sm:flex-row gap-3">
+          <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row gap-3 overflow-x-hidden">
             <Button
               onClick={() => {
                 onClose();
                 onLogout();
               }}
               variant="outline"
-              className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+              className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 min-w-0"
             >
-              <LogOut className="h-4 w-4 mr-2" />
-              {t.dashboard.customerDetails.logout}
+              <LogOut className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">{t.dashboard.customerDetails.logout}</span>
             </Button>
             <Button
               onClick={() => {
                 onClose();
                 onEditProfile();
               }}
-              className="flex-1 bg-nmb-maroon hover:bg-[#6e0e00] text-white"
+              className="flex-1 bg-nmb-maroon hover:bg-[#6e0e00] text-white min-w-0"
             >
-              <Edit className="h-4 w-4 mr-2" />
-              {t.dashboard.customerDetails.editProfile}
+              <Edit className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">{t.dashboard.customerDetails.editProfile}</span>
             </Button>
           </div>
         </div>

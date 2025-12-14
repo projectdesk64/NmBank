@@ -93,6 +93,18 @@ export interface Payment {
   accountId?: string;
 }
 
+export interface ExchangeRate {
+  currency: string;
+  buy: number;
+  sell: number;
+}
+
+export interface Reward {
+  title: string;
+  description: string;
+  validUntil: string; // ISO date string
+}
+
 export interface CurrentUser {
   accounts: Account[];
   cards: Card[];
@@ -102,6 +114,8 @@ export interface CurrentUser {
   investments: Investment[];
   insurance: Insurance[];
   payments: Payment[];
+  rates: ExchangeRate[];
+  rewards: Reward[];
 }
 
 // Mock Data - Current User
@@ -494,6 +508,42 @@ export const currentUser: CurrentUser = {
       status: 'pending',
       category: 'Loan',
       accountId: 'acc-001',
+    },
+  ],
+
+  rates: [
+    { currency: 'USD', buy: 92.50, sell: 93.20 },
+    { currency: 'EUR', buy: 100.30, sell: 101.10 },
+    { currency: 'GBP', buy: 115.80, sell: 116.60 },
+    { currency: 'CNY', buy: 12.90, sell: 13.20 },
+    { currency: 'JPY', buy: 0.62, sell: 0.64 },
+  ],
+
+  rewards: [
+    {
+      title: 'Platinum Cashback - 5% on Dining',
+      description: 'Get 5% cashback on all restaurant and food delivery purchases. Valid for Platinum cardholders.',
+      validUntil: '2025-03-31T00:00:00.000Z',
+    },
+    {
+      title: 'Zero Forex Markup',
+      description: 'No foreign exchange markup on international transactions. Exclusive for Premium account holders.',
+      validUntil: '2025-12-31T00:00:00.000Z',
+    },
+    {
+      title: 'Airport Lounge Access',
+      description: 'Complimentary access to premium airport lounges worldwide. Unlimited visits per year.',
+      validUntil: '2025-12-31T00:00:00.000Z',
+    },
+    {
+      title: 'Investment Advisory - Free Session',
+      description: 'Book a free 1-hour session with our certified financial advisors. Limited time offer.',
+      validUntil: '2025-01-31T00:00:00.000Z',
+    },
+    {
+      title: 'Premium Insurance Discount',
+      description: 'Get 20% discount on all insurance products. Apply code PREMIUM20 at checkout.',
+      validUntil: '2025-06-30T00:00:00.000Z',
     },
   ],
 };

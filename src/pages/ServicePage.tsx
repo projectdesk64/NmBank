@@ -2,7 +2,7 @@ import { useLocation, useParams, Navigate } from 'react-router-dom';
 import { GenericServiceLayout } from '@/components/services/GenericServiceLayout';
 import { useLanguage } from '@/hooks/useLanguage';
 import { currentUser } from '@/data/mockData';
-import { PieChart, Shield, Send, TrendingUp } from 'lucide-react';
+import { PieChart, Shield, Send, TrendingUp, Globe, Gift } from 'lucide-react';
 
 // Format currency helper
 const formatCurrency = (amount: number, currency: string = 'RUB'): string => {
@@ -262,6 +262,56 @@ export const ServicePage = () => {
               }
               return <span className="text-gray-600 font-semibold">{value}</span>;
             },
+          },
+        ]}
+      />
+    );
+  }
+
+  if (normalizedSlug === 'rates') {
+    return (
+      <GenericServiceLayout
+        title="Exchange Rates"
+        data={currentUser.rates}
+        summary={{
+          label: 'Live Exchange Rates',
+          value: `${currentUser.rates.length} Currencies`,
+          icon: Globe,
+        }}
+        columns={[
+          { key: 'currency', label: 'Currency' },
+          {
+            key: 'buy',
+            label: 'Buy Rate',
+            render: (value) => value.toFixed(2),
+          },
+          {
+            key: 'sell',
+            label: 'Sell Rate',
+            render: (value) => value.toFixed(2),
+          },
+        ]}
+      />
+    );
+  }
+
+  if (normalizedSlug === 'rewards') {
+    return (
+      <GenericServiceLayout
+        title="Rewards & Offers"
+        data={currentUser.rewards}
+        summary={{
+          label: 'Active Offers',
+          value: currentUser.rewards.length,
+          icon: Gift,
+        }}
+        columns={[
+          { key: 'title', label: 'Offer Title' },
+          { key: 'description', label: 'Description' },
+          {
+            key: 'validUntil',
+            label: 'Valid Until',
+            render: (value) => formatDate(value, language),
           },
         ]}
       />

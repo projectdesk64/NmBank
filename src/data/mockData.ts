@@ -57,6 +57,40 @@ export interface Transaction {
   accountId?: string;
   cardId?: string;
   status: 'success' | 'pending' | 'failed';
+  merchant?: string;
+}
+
+export interface Investment {
+  id: string;
+  name: string;
+  type: 'Stocks' | 'Bonds' | 'Mutual Funds' | 'ETFs' | 'Real Estate';
+  value: number;
+  roi: number; // Return on Investment as percentage
+  purchaseDate: string; // ISO date string
+  quantity?: number;
+  currentPrice?: number;
+}
+
+export interface Insurance {
+  id: string;
+  policyNo: string;
+  provider: string;
+  coverageAmount: number;
+  expiry: string; // ISO date string
+  type: 'Life' | 'Health' | 'Auto' | 'Home' | 'Travel';
+  premium: number;
+  status: 'Active' | 'Expired' | 'Cancelled';
+}
+
+export interface Payment {
+  id: string;
+  biller: string;
+  amount: number;
+  dueDate: string; // ISO date string
+  status: 'paid' | 'pending' | 'overdue';
+  category: 'Utilities' | 'Credit Card' | 'Loan' | 'Insurance' | 'Subscription' | 'Other';
+  paymentDate?: string; // ISO date string
+  accountId?: string;
 }
 
 export interface CurrentUser {
@@ -65,6 +99,9 @@ export interface CurrentUser {
   deposits: FixedDeposit[];
   loans: Loan[];
   transactions: Transaction[];
+  investments: Investment[];
+  insurance: Insurance[];
+  payments: Payment[];
 }
 
 // Mock Data - Current User
@@ -284,6 +321,179 @@ export const currentUser: CurrentUser = {
       category: 'Cash Withdrawal',
       cardId: 'card-001',
       status: 'success',
+      merchant: 'ATM-1234',
+    },
+    {
+      id: 'txn-009',
+      description: 'Amazon Purchase',
+      amount: 12500.00,
+      type: 'debit',
+      date: '2024-12-11T00:00:00.000Z',
+      category: 'Shopping',
+      cardId: 'card-001',
+      status: 'success',
+      merchant: 'Amazon',
+    },
+    {
+      id: 'txn-010',
+      description: 'Electricity Bill Payment',
+      amount: 3500.00,
+      type: 'debit',
+      date: '2024-12-12T00:00:00.000Z',
+      category: 'Utilities',
+      accountId: 'acc-001',
+      status: 'success',
+      merchant: 'Moscow Energy',
+    },
+  ],
+
+  investments: [
+    {
+      id: 'inv-001',
+      name: 'Sberbank Shares',
+      type: 'Stocks',
+      value: 250000.00,
+      roi: 12.5,
+      purchaseDate: '2023-06-15T00:00:00.000Z',
+      quantity: 100,
+      currentPrice: 2500.00,
+    },
+    {
+      id: 'inv-002',
+      name: 'Government Bonds',
+      type: 'Bonds',
+      value: 500000.00,
+      roi: 7.2,
+      purchaseDate: '2022-01-10T00:00:00.000Z',
+      quantity: 50,
+      currentPrice: 10000.00,
+    },
+    {
+      id: 'inv-003',
+      name: 'Tech ETF Portfolio',
+      type: 'ETFs',
+      value: 150000.00,
+      roi: 18.3,
+      purchaseDate: '2024-03-20T00:00:00.000Z',
+      quantity: 75,
+      currentPrice: 2000.00,
+    },
+    {
+      id: 'inv-004',
+      name: 'Real Estate Investment Trust',
+      type: 'Real Estate',
+      value: 2000000.00,
+      roi: 9.8,
+      purchaseDate: '2021-11-05T00:00:00.000Z',
+    },
+    {
+      id: 'inv-005',
+      name: 'Global Mutual Fund',
+      type: 'Mutual Funds',
+      value: 750000.00,
+      roi: 11.2,
+      purchaseDate: '2023-09-12T00:00:00.000Z',
+    },
+  ],
+
+  insurance: [
+    {
+      id: 'ins-001',
+      policyNo: 'POL-2024-001234',
+      provider: 'Rosgosstrakh',
+      coverageAmount: 5000000.00,
+      expiry: '2025-12-31T00:00:00.000Z',
+      type: 'Life',
+      premium: 50000.00,
+      status: 'Active',
+    },
+    {
+      id: 'ins-002',
+      policyNo: 'POL-2024-002567',
+      provider: 'Alfa Insurance',
+      coverageAmount: 2000000.00,
+      expiry: '2025-06-30T00:00:00.000Z',
+      type: 'Health',
+      premium: 30000.00,
+      status: 'Active',
+    },
+    {
+      id: 'ins-003',
+      policyNo: 'POL-2023-009876',
+      provider: 'Ingosstrakh',
+      coverageAmount: 3000000.00,
+      expiry: '2024-11-15T00:00:00.000Z',
+      type: 'Auto',
+      premium: 25000.00,
+      status: 'Expired',
+    },
+    {
+      id: 'ins-004',
+      policyNo: 'POL-2024-003890',
+      provider: 'RESO-Garantia',
+      coverageAmount: 10000000.00,
+      expiry: '2026-03-20T00:00:00.000Z',
+      type: 'Home',
+      premium: 45000.00,
+      status: 'Active',
+    },
+  ],
+
+  payments: [
+    {
+      id: 'pay-001',
+      biller: 'Moscow Energy',
+      amount: 3500.00,
+      dueDate: '2024-12-15T00:00:00.000Z',
+      status: 'paid',
+      category: 'Utilities',
+      paymentDate: '2024-12-12T00:00:00.000Z',
+      accountId: 'acc-001',
+    },
+    {
+      id: 'pay-002',
+      biller: 'Credit Card Payment',
+      amount: 15000.00,
+      dueDate: '2024-12-20T00:00:00.000Z',
+      status: 'pending',
+      category: 'Credit Card',
+      accountId: 'acc-001',
+    },
+    {
+      id: 'pay-003',
+      biller: 'Internet Provider',
+      amount: 1200.00,
+      dueDate: '2024-12-18T00:00:00.000Z',
+      status: 'pending',
+      category: 'Utilities',
+      accountId: 'acc-002',
+    },
+    {
+      id: 'pay-004',
+      biller: 'Netflix Subscription',
+      amount: 499.00,
+      dueDate: '2024-12-25T00:00:00.000Z',
+      status: 'pending',
+      category: 'Subscription',
+      cardId: 'card-001',
+    },
+    {
+      id: 'pay-005',
+      biller: 'Insurance Premium - Life',
+      amount: 50000.00,
+      dueDate: '2025-01-05T00:00:00.000Z',
+      status: 'pending',
+      category: 'Insurance',
+      accountId: 'acc-001',
+    },
+    {
+      id: 'pay-006',
+      biller: 'Loan EMI - Personal Loan',
+      amount: 25000.00,
+      dueDate: '2024-12-15T00:00:00.000Z',
+      status: 'pending',
+      category: 'Loan',
+      accountId: 'acc-001',
     },
   ],
 };

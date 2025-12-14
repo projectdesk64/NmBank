@@ -5,7 +5,6 @@ import { auth, db } from '@/lib/firebase';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useLanguage } from '@/hooks/useLanguage';
-import { formatCurrency } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -126,6 +125,16 @@ export const FixedDeposits = () => {
 
   const translations = pageTranslations[language];
 
+  // RUB Currency Formatter - Always use Russian Rubles format
+  const formatRUB = (amount: number): string => {
+    return new Intl.NumberFormat('ru-RU', {
+      style: 'currency',
+      currency: 'RUB',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
   // Real-time subscription to user data
   useEffect(() => {
     let unsubscribeUser: (() => void) | null = null;
@@ -201,13 +210,14 @@ export const FixedDeposits = () => {
   const calculateReturns = () => {
     const principal = parseFloat(calcAmount) || 0;
     const years = parseFloat(calcTenure) || 1;
-    const rate = 7.1; // 7.1% annual rate
+    const rate = 0.071; // 7.1% annual rate (0.071 as decimal)
     
     if (principal <= 0 || years <= 0) {
       return { maturity: 0, interest: 0 };
     }
     
-    const interest = principal * (rate / 100) * years;
+    // Maturity = Amount + (Amount * 0.071 * Years)
+    const interest = principal * rate * years;
     const maturity = principal + interest;
     
     return { maturity, interest };
@@ -224,7 +234,9 @@ export const FixedDeposits = () => {
       return;
     }
 
-    const confirmed = window.confirm(translations.closeDepositConfirm);
+    const confirmed = window.confirm(
+      `Are you sure you want to close this deposit of ${formatRUB(fd.principal)}? The funds will be returned to your main balance.`
+    );
     if (!confirmed) {
       return;
     }
@@ -234,7 +246,9 @@ export const FixedDeposits = () => {
       
       // Create transaction record
       const newTransaction = {
-        description: `FD Premature Closure - ${formatFDId(fd.id)}`,
+        description: language === 'ru' 
+          ? `Закрытие вклада - ${formatFDId(fd.id)}`
+          : `Closure of Deposit - ${formatFDId(fd.id)}`,
         amount: fd.principal,
         type: 'credit',
         category: 'Investment',
@@ -370,7 +384,7 @@ export const FixedDeposits = () => {
 
       toast({
         title: translations.fixedDepositCreated,
-        description: `${translations.successfullyCreated} ${formatCurrency(amountNum, language)}`,
+        description: `${translations.successfullyCreated} ${formatRUB(amountNum)}`,
       });
 
       setIsModalOpen(false);
@@ -464,7 +478,7 @@ export const FixedDeposits = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">{translations.totalInvestment}</p>
                 <p className="text-3xl font-bold text-nmb-maroon">
-                  {formatCurrency(totalPrincipal, language, { maximumFractionDigits: 0 })}
+                  {formatRUB(totalPrincipal)}
                 </p>
               </div>
               <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -490,7 +504,7 @@ export const FixedDeposits = () => {
                         step="0.01"
                       />
                       <p className="text-sm text-gray-600">
-                        {translations.availableBalance}: {formatCurrency(balance, language)}
+                        {translations.availableBalance}: {formatRUB(balance)}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-4 space-y-2">
@@ -592,7 +606,7 @@ export const FixedDeposits = () => {
                           <TableRow key={fd.id} className="hover:bg-gray-50 transition-colors">
                             <TableCell className="font-medium text-nmb-charcoal">{formatFDId(fd.id)}</TableCell>
                             <TableCell className="font-semibold">
-                              {formatCurrency(fd.principal, language, { maximumFractionDigits: 0 })}
+                              {formatRUB(fd.principal)}
                             </TableCell>
                             <TableCell>{formatInterestRate(fd.interestRate)}</TableCell>
                             <TableCell>{formatMaturityDate(fd.maturityDate)}</TableCell>
@@ -635,7 +649,7 @@ export const FixedDeposits = () => {
                           <TableRow key={fd.id} className="hover:bg-gray-50 transition-colors">
                             <TableCell className="font-medium text-nmb-charcoal">{formatFDId(fd.id)}</TableCell>
                             <TableCell className="font-semibold">
-                              {formatCurrency(fd.principal, language, { maximumFractionDigits: 0 })}
+                              {formatRUB(fd.principal)}
                             </TableCell>
                             <TableCell>{formatInterestRate(fd.interestRate)}</TableCell>
                             <TableCell>{formatMaturityDate(fd.maturityDate)}</TableCell>
@@ -733,13 +747,13 @@ export const FixedDeposits = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">{translations.interestEarned}:</span>
                     <span className="font-semibold text-nmb-maroon">
-                      {formatCurrency(calculateReturns().interest, language)}
+                      {formatRUB(calculateReturns().interest)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-gray-300">
                     <span className="text-sm font-medium text-gray-700">{translations.maturityAmount}:</span>
                     <span className="text-lg font-bold text-nmb-maroon">
-                      {formatCurrency(calculateReturns().maturity, language)}
+                      {formatRUB(calculateReturns().maturity)}
                     </span>
                   </div>
                 </div>

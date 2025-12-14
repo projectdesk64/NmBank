@@ -57,9 +57,9 @@ export const NavBar = () => {
       <nav className={`bg-white border-b border-gray-200 sticky top-0 z-50 transition-shadow duration-200 ${isScrolled ? 'shadow-md' : 'shadow-sm'}`}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-20">
-            {/* Left: Logo (clickable to homepage) */}
+            {/* Left: Logo (clickable to dashboard) */}
             <div className="flex-shrink-0">
-              <Link to="/" className="flex flex-col items-center hover:opacity-90 transition-opacity">
+              <Link to="/dashboard" className="flex flex-col items-center hover:opacity-90 transition-opacity cursor-pointer">
                 <img src={logo} alt={t.nav.bankName} className="h-10 w-auto" />
                 <span className="text-nmb-orange font-sans text-sm font-medium mt-1">New Moscow Bank</span>
               </Link>

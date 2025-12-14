@@ -69,9 +69,30 @@
     @apply border-border;
   }
 
+  html {
+    /* Reserve space for scrollbar to prevent layout shift */
+    scrollbar-gutter: stable;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: "Inter", sans-serif;
+    /* Fallback for browsers that don't support scrollbar-gutter */
+    overflow-y: scroll !important;
+    /* Ensure scrollbar is always visible - this will be overridden by JS but we'll fight it */
+  }
+  
+  /* Prevent Select dropdown from hiding scrollbar - override Radix UI scroll lock */
+  body[data-scroll-locked],
+  body:not(.dialog-open) {
+    overflow-y: scroll !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Also target html element in case Radix modifies it */
+  html[data-scroll-locked] {
+    overflow-y: scroll !important;
   }
 
   .tabular-nums {

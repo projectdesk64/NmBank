@@ -1,6 +1,7 @@
 import React from 'react';
 import { 
-  TrendingUp, CreditCard, FileText, DollarSign, Settings, LayoutGrid
+  TrendingUp, CreditCard, FileText, DollarSign, Globe, Gift,
+  Wallet, PieChart, Shield
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -18,27 +19,30 @@ export const QuickLinks = () => {
   const quickLinks: QuickLink[] = [
     { title: 'Open Fixed Deposit', subtitle: 'Guaranteed returns', icon: TrendingUp, path: '/dashboard/fixed-deposits' },
     { title: 'Manage Cards', subtitle: 'Lock, block & limit', icon: CreditCard, path: '/dashboard/cards' },
-    { title: 'Transaction History', subtitle: 'View past payments', icon: FileText, path: '/dashboard/transactions' },
+    { title: 'Exchange Rates', subtitle: 'USD, EUR, GBP Live', icon: Globe, path: '/services/rates' },
     { title: 'My Loans', subtitle: 'Track repayment', icon: DollarSign, path: '/dashboard/loans' },
-    { title: 'Profile & Settings', subtitle: 'Update personal info', icon: Settings, path: '/dashboard/settings' },
-    { title: 'Services Hub', subtitle: 'All bank services', icon: LayoutGrid, path: '/dashboard/services' },
+    { title: 'Transaction History', subtitle: 'View past payments', icon: FileText, path: '/dashboard/transactions' },
+    { title: 'Rewards & Offers', subtitle: 'Platinum privileges', icon: Gift, path: '/services/rewards' },
+    { title: 'My Accounts', subtitle: 'View all accounts', icon: Wallet, path: '/dashboard/accounts' },
+    { title: 'Investments', subtitle: 'Portfolio overview', icon: PieChart, path: '/dashboard/investments' },
+    { title: 'Insurance', subtitle: 'Policies & coverage', icon: Shield, path: '/dashboard/insurance' },
   ];
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-large">
       <h3 className="text-xl font-heading font-bold text-nmb-charcoal mb-5">{t.dashboard.quickLinks.title}</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {quickLinks.map((link) => {
           const Icon = link.icon;
           return (
             <Link
               key={link.title}
               to={link.path}
-              className="flex items-center gap-4 p-4 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-orange-100 transition-all duration-200 group"
+              className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 hover:shadow-lg hover:-translate-y-1 hover:border-orange-200 transition-all duration-300 cursor-pointer group"
             >
-              <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-orange-50 text-orange-600 group-hover:bg-orange-100 transition-colors flex-shrink-0">
-                <Icon className="h-6 w-6" />
+              <div className="w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center bg-gray-50 group-hover:bg-orange-50 transition-colors">
+                <Icon className="w-7 h-7 text-gray-600 group-hover:text-orange-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-bold text-sm text-nmb-charcoal group-hover:text-orange-600 transition-colors">

@@ -19,21 +19,29 @@ setFavicon(favicon);
 
 // Global error handler to filter out browser extension errors
 const setupGlobalErrorHandlers = () => {
+  // Helper function to check if an error is from a browser extension
+  const isExtensionError = (errorMessage: string): boolean => {
+    const message = errorMessage.toLowerCase();
+    return (
+      message.includes('message channel closed') ||
+      message.includes('asynchronous response') ||
+      message.includes('extension context invalidated') ||
+      message.includes('receiving end does not exist') ||
+      message.includes('could not establish connection') ||
+      message.includes('chrome-extension://') ||
+      message.includes('moz-extension://') ||
+      message.includes('runtime.lasterror') ||
+      message.includes('runtime.lastError') ||
+      message.includes('a listener indicated an asynchronous response')
+    );
+  };
+
   // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
     const error = event.reason;
     const errorMessage = error?.message || String(error);
     
-    // Filter out common browser extension errors
-    const isExtensionError = 
-      errorMessage.includes('message channel closed') ||
-      errorMessage.includes('Extension context invalidated') ||
-      errorMessage.includes('Receiving end does not exist') ||
-      errorMessage.includes('Could not establish connection') ||
-      errorMessage.includes('chrome-extension://') ||
-      errorMessage.includes('moz-extension://');
-    
-    if (isExtensionError) {
+    if (isExtensionError(errorMessage)) {
       // Silently ignore extension errors - they don't affect the app
       event.preventDefault();
       if (import.meta.env.DEV) {
@@ -54,14 +62,7 @@ const setupGlobalErrorHandlers = () => {
   window.onerror = (message, source, lineno, colno, error) => {
     const errorMessage = String(message);
     
-    // Filter out browser extension errors
-    const isExtensionError = 
-      errorMessage.includes('message channel closed') ||
-      errorMessage.includes('Extension context invalidated') ||
-      errorMessage.includes('chrome-extension://') ||
-      errorMessage.includes('moz-extension://');
-    
-    if (isExtensionError) {
+    if (isExtensionError(errorMessage)) {
       // Silently ignore extension errors
       if (import.meta.env.DEV) {
         console.debug('Filtered browser extension error:', errorMessage);
@@ -75,6 +76,31 @@ const setupGlobalErrorHandlers = () => {
     }
     
     return false; // Let default error handling proceed
+  };
+
+  // Intercept console.error to filter extension errors
+  const originalConsoleError = console.error;
+  console.error = (...args: unknown[]) => {
+    const errorMessage = args
+      .map(arg => 
+        typeof arg === 'string' 
+          ? arg 
+          : arg instanceof Error 
+            ? arg.message 
+            : String(arg)
+      )
+      .join(' ');
+    
+    if (isExtensionError(errorMessage)) {
+      // Suppress extension errors from console
+      if (import.meta.env.DEV) {
+        console.debug('Filtered browser extension console error:', errorMessage);
+      }
+      return;
+    }
+    
+    // Call original console.error for non-extension errors
+    originalConsoleError.apply(console, args);
   };
 };
 

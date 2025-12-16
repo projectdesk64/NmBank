@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/formatters';
 import { useLanguage } from '@/hooks/useLanguage';
 
 interface SpendingData {
@@ -14,23 +15,22 @@ interface SpendingPieChartProps {
   className?: string;
 }
 
-// Default spending categories with colors
+// Default spending categories with colors (values in Russian Rubles)
 const defaultSpendingData: SpendingData[] = [
-  { name: 'Food & Dining', value: 12500, color: '#DC8924' }, // nmb-orange
-  { name: 'Shopping', value: 8200, color: '#8A1200' }, // nmb-maroon
-  { name: 'Transportation', value: 5600, color: '#1E39C6' }, // nmb-blue
-  { name: 'Bills & Utilities', value: 4500, color: '#8B5CF6' }, // purple
-  { name: 'Entertainment', value: 3200, color: '#EC4899' }, // pink
-  { name: 'Others', value: 2800, color: '#64748B' }, // gray
+  { name: 'Food & Dining', value: 1125000, color: '#DC8924' }, // nmb-orange
+  { name: 'Shopping', value: 738000, color: '#8A1200' }, // nmb-maroon
+  { name: 'Transportation', value: 504000, color: '#1E39C6' }, // nmb-blue
+  { name: 'Bills & Utilities', value: 405000, color: '#8B5CF6' }, // purple
+  { name: 'Entertainment', value: 288000, color: '#EC4899' }, // pink
+  { name: 'Others', value: 252000, color: '#64748B' }, // gray
 ];
 
 interface CustomTooltipProps {
   active?: boolean;
   payload?: any[];
-  language?: 'en' | 'ru';
 }
 
-const CustomTooltip = ({ active, payload, language = 'en' }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     const total = payload.reduce((sum: number, entry: any) => sum + entry.value, 0);
@@ -40,7 +40,7 @@ const CustomTooltip = ({ active, payload, language = 'en' }: CustomTooltipProps)
       <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
         <p className="font-semibold text-nmb-charcoal">{data.name}</p>
         <p className="text-sm text-gray-600 mt-1">
-          {formatCurrency(data.value, language, { maximumFractionDigits: 0 })}
+          {formatCurrency(data.value)}
         </p>
         <p className="text-xs text-gray-500 mt-1">{percentage}% of total</p>
       </div>
@@ -53,7 +53,7 @@ export const SpendingPieChart = ({
   data = defaultSpendingData,
   className 
 }: SpendingPieChartProps) => {
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const totalSpending = data.reduce((sum, item) => sum + item.value, 0);
@@ -77,18 +77,18 @@ export const SpendingPieChart = ({
     <div className={cn("bg-white rounded-2xl p-6 border border-nmb-mist shadow-large hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300", className)}>
       <div className="mb-5">
         <h3 className="text-lg font-heading font-semibold text-nmb-charcoal mb-1">
-          Spending Overview
+          {t.dashboard.spendingOverview.title}
         </h3>
-        <p className="text-sm text-gray-500">This month's expenses</p>
+        <p className="text-sm text-gray-500">{t.dashboard.spendingOverview.thisMonthExpenses}</p>
       </div>
 
       {/* Total Spending */}
       <div className="mb-6 pb-5 border-b border-gray-100">
         <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-          Total Spending
+          {t.dashboard.spendingOverview.totalSpending}
         </p>
         <p className="text-3xl font-heading font-bold text-nmb-charcoal tabular-nums">
-          {formatCurrency(totalSpending, language, { maximumFractionDigits: 0 })}
+          {formatCurrency(totalSpending)}
         </p>
       </div>
 
@@ -132,7 +132,7 @@ export const SpendingPieChart = ({
                 );
               })}
             </Pie>
-            <Tooltip content={<CustomTooltip language={language} />} />
+            <Tooltip content={<CustomTooltip />} />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -178,7 +178,7 @@ export const SpendingPieChart = ({
                   "text-sm tabular-nums",
                   isActive ? "font-semibold text-nmb-charcoal" : "font-medium text-gray-700"
                 )}>
-                  {formatCurrency(item.value, language, { maximumFractionDigits: 0 })}
+                  {formatCurrency(item.value)}
                 </span>
                 <span className={cn(
                   "text-xs w-12 text-right tabular-nums",

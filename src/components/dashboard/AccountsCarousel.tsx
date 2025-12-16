@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/formatters';
 import { useLanguage } from '@/hooks/useLanguage';
 
 interface Account {
@@ -22,15 +23,17 @@ interface AccountsCarouselProps {
 }
 
 const formatAccountNumber = (accountNumber: string, revealed: boolean) => {
-  if (!accountNumber) return '****  ****  ****  ****';
+  if (!accountNumber) return '•••• •••• •••• •••• ••••';
   if (revealed) {
-    // Format as credit card number: XXXX XXXX XXXX XXXX
+    // Format as 20-digit Russian bank account: XXXX XXXX XXXX XXXX XXXX
     const cleaned = accountNumber.replace(/\s/g, '');
-    return cleaned.match(/.{1,4}/g)?.join('  ') || accountNumber;
+    // Pad to 20 digits if needed
+    const padded = cleaned.padStart(20, '0');
+    return padded.match(/.{1,4}/g)?.join(' ') || accountNumber;
   }
-  // Show last 4 digits in credit card format
+  // Show last 4 digits in 20-digit Russian bank account format (5 groups of 4)
   const lastFour = accountNumber.slice(-4);
-  return `****  ****  ****  ${lastFour}`;
+  return `•••• •••• •••• •••• ${lastFour}`;
 };
 
 // Credit card style gradients - more sophisticated
@@ -280,7 +283,7 @@ export const AccountsCarousel = ({
                         Available Balance
                       </p>
                       <p className="text-3xl font-heading font-bold text-white tabular-nums leading-tight">
-                        {showBalance ? formatCurrency(account.balance, language, { maximumFractionDigits: 0 }) : (
+                        {showBalance ? formatCurrency(account.balance) : (
                           <span className="inline-flex items-center gap-1.5">
                             <span className="text-white/80">{language === 'ru' ? '₽' : '₹'}</span>
                             <span className="flex gap-1.5">

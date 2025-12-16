@@ -6,7 +6,7 @@ import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/utils/formatters';
 import {
   Table,
   TableBody,
@@ -196,7 +196,7 @@ export const TransactionsPage = () => {
                           transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
                         )}>
                           {transaction.type === 'credit' ? '+' : '-'}
-                          {formatCurrency(Math.abs(transaction.amount), language)}
+                          {formatCurrency(Math.abs(transaction.amount))}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -232,8 +232,7 @@ export const TransactionsPage = () => {
                 {formatCurrency(
                   transactions
                     .filter(tx => tx.type === 'credit')
-                    .reduce((sum, tx) => sum + Math.abs(tx.amount), 0),
-                  language
+                    .reduce((sum, tx) => sum + Math.abs(tx.amount), 0)
                 )}
               </p>
             </div>
@@ -243,8 +242,7 @@ export const TransactionsPage = () => {
                 {formatCurrency(
                   transactions
                     .filter(tx => tx.type === 'debit')
-                    .reduce((sum, tx) => sum + Math.abs(tx.amount), 0),
-                  language
+                    .reduce((sum, tx) => sum + Math.abs(tx.amount), 0)
                 )}
               </p>
             </div>

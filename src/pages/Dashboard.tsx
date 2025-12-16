@@ -15,7 +15,7 @@ import { RecentTransactions, Transaction as RecentTransaction } from '@/componen
 import { AccountDetailsModal } from '@/components/dashboard/AccountDetailsModal';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/utils/formatters';
 import { currentUser as mockUser } from '@/data/mockData';
 
 interface Profile {
@@ -294,7 +294,7 @@ export const Dashboard = () => {
       });
       toast({
         title: "Transfer Successful",
-        description: `Successfully transferred ${formatCurrency(amount, language)} to ${to}`,
+        description: `Successfully transferred ${formatCurrency(amount)} to ${to}`,
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Transfer failed. Please try again.';
@@ -372,7 +372,7 @@ export const Dashboard = () => {
 
       toast({
         title: "Fixed Deposit Created",
-        description: `Successfully created FD of ${formatCurrency(amount, language)}`,
+        description: `Successfully created FD of ${formatCurrency(amount)}`,
       });
       setIsFDModalOpen(false);
     } catch (error: unknown) {
@@ -483,6 +483,7 @@ export const Dashboard = () => {
         balance: acc.balance,
         currency: acc.currency,
         iban: acc.iban,
+        nickname: acc.nickname,
       });
     });
 
@@ -496,6 +497,7 @@ export const Dashboard = () => {
       type: 'fd' as const,
       accountNumber: activeFDs.length === 0 ? 'Start Investment' : `Total Active: ${activeFDs.length}`,
       balance: activeFDs.length === 0 ? 0 : activeFDTotal,
+      nickname: 'Investment FD',
       interestRate: activeFDs.length === 0 ? 'Up to 8.5%' : (activeFDs[0]?.rate?.toString() || '7.10'),
       maturityDate: activeFDs.length === 0 ? 'N/A' : 'Various',
     });
@@ -525,27 +527,32 @@ export const Dashboard = () => {
   const sendMoneyAccounts = useMemo(() => {
     const accountList = [];
     
-    // Add savings/current account
-    if (accountDetails) {
-      accountList.push({
-        accountNumber: accountDetails.accountNumber,
-        type: accountDetails.type,
-        balance: balance,
-      });
-    }
+    // Add accounts from the main accounts array (which includes nicknames)
+    accounts.forEach((acc) => {
+      // Only include savings/current accounts, not FD summary
+      if (acc.type === 'savings' || acc.type === 'current') {
+        accountList.push({
+          accountNumber: acc.accountNumber,
+          type: acc.type === 'savings' ? 'Savings' : 'Current',
+          balance: acc.balance,
+          nickname: acc.nickname,
+        });
+      }
+    });
 
-    // Add individual Fixed Deposit accounts
-    const activeFDs = fixedDeposits?.filter(fd => fd?.status === 'Active' || fd?.status === 'active') || [];
+    // Add individual Fixed Deposit accounts from mock data
+    const activeFDs = mockUser.deposits.filter(dep => dep.status === 'Active');
     activeFDs.forEach((fd) => {
       accountList.push({
         accountNumber: fd.id, // Use FD ID as identifier
         type: 'Fixed Deposit',
         balance: fd.principal,
+        nickname: 'Fixed Deposit', // Use generic name instead of raw ID
       });
     });
 
     return accountList;
-  }, [accountDetails, balance, fixedDeposits]);
+  }, [accounts]);
 
   if (loading) {
     return (

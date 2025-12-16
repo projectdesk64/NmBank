@@ -5,23 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/useLanguage';
 import { currentUser, Account } from '@/data/mockData';
 import { Wallet, Inbox, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
 
 export const Accounts = () => {
   const { language } = useLanguage();
   const accounts = currentUser.accounts;
-
-  // Format currency based on currency type
-  const formatCurrency = (amount: number, currency: string): string => {
-    const locale = currency === 'USD' ? 'en-US' : 'ru-RU';
-    const currencyCode = currency === 'USD' ? 'USD' : 'RUB';
-    
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: currencyCode,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
 
   // Get status badge variant
   const getStatusBadge = (status: Account['status']) => {
@@ -67,7 +55,7 @@ export const Accounts = () => {
                   {language === 'ru' ? 'Общий баланс' : 'Total Balance'}
                 </p>
                 <p className="text-3xl font-bold text-nmb-maroon">
-                  {formatCurrency(totalBalance, 'RUB')}
+                  {formatCurrency(totalBalance)}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -130,7 +118,7 @@ export const Accounts = () => {
                           {account.type}
                         </TableCell>
                         <TableCell className="font-semibold text-nmb-maroon">
-                          {formatCurrency(account.balance, account.currency)}
+                          {formatCurrency(account.balance)}
                         </TableCell>
                         <TableCell className="text-gray-700">
                           {account.currency}

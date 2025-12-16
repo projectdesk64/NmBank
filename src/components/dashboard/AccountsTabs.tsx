@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -6,14 +6,16 @@ import { Button } from '@/components/ui/button';
 import { AnimatedTabs, Tab } from '@/components/ui/animated-tabs';
 import { SpendingPieChart } from '@/components/dashboard/SpendingPieChart';
 import { SendMoney } from '@/components/dashboard/SendMoney';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useLanguage } from '@/hooks/useLanguage';
+import { formatCurrency } from '@/utils/formatters';
 
 interface Account {
   id: string;
   type: 'savings' | 'current' | 'fd';
   accountNumber: string;
   balance: number;
+  nickname?: string;
   ifsc?: string;
   branch?: string;
   interestRate?: string;
@@ -37,15 +39,17 @@ interface AccountsTabsProps {
 }
 
 const formatAccountNumber = (accountNumber: string, revealed: boolean) => {
-  if (!accountNumber) return '****  ****  ****  ****';
+  if (!accountNumber) return '•••• •••• •••• •••• ••••';
   if (revealed) {
-    // Format as credit card number: XXXX XXXX XXXX XXXX
+    // Format as 20-digit Russian bank account: XXXX XXXX XXXX XXXX XXXX
     const cleaned = accountNumber.replace(/\s/g, '');
-    return cleaned.match(/.{1,4}/g)?.join('  ') || accountNumber;
+    // Pad to 20 digits if needed
+    const padded = cleaned.padStart(20, '0');
+    return padded.match(/.{1,4}/g)?.join(' ') || accountNumber;
   }
-  // Show last 4 digits in credit card format
+  // Show last 4 digits in 20-digit Russian bank account format (5 groups of 4)
   const lastFour = accountNumber.slice(-4);
-  return `****  ****  ****  ${lastFour}`;
+  return `•••• •••• •••• •••• ${lastFour}`;
 };
 
 // Account type configurations
@@ -142,10 +146,13 @@ export const AccountsTabs = ({
   const tabs: Tab[] = accounts.map((account) => {
     const isRevealed = revealedAccounts.has(account.id);
     const config = accountConfig[account.type];
+    
+    // Use nickname if available, otherwise fallback to account type
+    const label = account.nickname || getAccountLabel(account.type, t);
 
     return {
       id: account.id,
-      label: getAccountLabel(account.type, t),
+      label: label,
       content: (
         <div className="w-full">
           <div className={cn(
@@ -216,7 +223,7 @@ export const AccountsTabs = ({
                </p>
                <p className="text-4xl font-heading font-bold text-nmb-charcoal tabular-nums leading-tight">
                  {showBalance ? (
-                   formatCurrency(account.balance, language, { maximumFractionDigits: 0 })
+                   formatCurrency(account.balance)
                  ) : (
                    <span className="inline-flex items-center gap-2">
                      <span className="text-gray-400">{language === 'ru' ? '₽' : '₹'}</span>

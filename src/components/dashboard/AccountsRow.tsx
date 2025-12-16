@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Wallet, TrendingUp, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/hooks/useLanguage';
+import { formatCurrency } from '@/utils/formatters';
 
 export interface Profile {
   name: string;
@@ -37,8 +37,9 @@ interface AccountsRowProps {
 }
 
 const formatAccountNumber = (accountNumber: string) => {
-  if (!accountNumber) return '****';
-  return `****${accountNumber.slice(-4)}`;
+  if (!accountNumber) return '•••• •••• •••• •••• ••••';
+  const lastFour = accountNumber.slice(-4);
+  return `•••• •••• •••• •••• ${lastFour}`;
 };
 
 export const AccountsRow = ({ 
@@ -108,7 +109,7 @@ export const AccountsRow = ({
           <div className="mt-6">
             <p className="text-gray-600 text-sm mb-2 font-medium">Available Balance</p>
             <p className="text-3xl font-bold text-slate-800">
-              {showBalance ? formatCurrency(accounts.savings.balance, language, { maximumFractionDigits: 0 }) : `${language === 'ru' ? '₽' : '₹'} ••••••`}
+              {showBalance ? formatCurrency(accounts.savings.balance) : '₽ ••••••'}
             </p>
           </div>
         </div>
@@ -119,7 +120,7 @@ export const AccountsRow = ({
             <div>
               <p className="text-gray-600 text-sm mb-1 font-medium">Total Deposits</p>
               <p className="text-3xl font-bold text-slate-800">
-                {showBalance ? formatCurrency(accounts.fixedDeposit.total, language, { maximumFractionDigits: 0 }) : `${language === 'ru' ? '₽' : '₹'} ••••••`}
+                {showBalance ? formatCurrency(accounts.fixedDeposit.total) : '₽ ••••••'}
               </p>
             </div>
             <TrendingUp className="h-8 w-8 text-orange-600" />

@@ -3,19 +3,7 @@ import { GenericServiceLayout } from '@/components/services/GenericServiceLayout
 import { useLanguage } from '@/hooks/useLanguage';
 import { currentUser } from '@/data/mockData';
 import { PieChart, Shield, Send, TrendingUp, Globe, Gift } from 'lucide-react';
-
-// Format currency helper
-const formatCurrency = (amount: number, currency: string = 'RUB'): string => {
-  const locale = currency === 'USD' ? 'en-US' : 'ru-RU';
-  const currencyCode = currency === 'USD' ? 'USD' : 'RUB';
-  
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: currencyCode,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-};
+import { formatCurrency } from '@/utils/formatters';
 
 // Format date helper
 const formatDate = (dateString: string, language: string = 'en'): string => {

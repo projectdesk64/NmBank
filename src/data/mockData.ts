@@ -9,6 +9,7 @@ export interface Account {
   status: 'Active' | 'Inactive' | 'Frozen';
   iban: string;
   type: 'Checking' | 'Savings';
+  nickname?: string;
 }
 
 export interface Card {
@@ -123,30 +124,33 @@ export const currentUser: CurrentUser = {
   accounts: [
     {
       id: 'acc-001',
-      accountNo: '4002123456789',
+      accountNo: '40021234567890123456',
       balance: 1250340.75,
       currency: 'RUB',
       status: 'Active',
       iban: 'RU12345678901234567890123456',
       type: 'Savings',
+      nickname: 'Main Savings',
     },
     {
       id: 'acc-002',
-      accountNo: '4002987654321',
+      accountNo: '40029876543210987654',
       balance: 89450.00,
       currency: 'RUB',
       status: 'Active',
       iban: 'RU98765432109876543210987654',
       type: 'Checking',
+      nickname: 'Passive Income',
     },
     {
       id: 'acc-003',
-      accountNo: '4002555555555',
+      accountNo: '40025555555550001234',
       balance: 250000.00,
-      currency: 'USD',
+      currency: 'RUB',
       status: 'Active',
-      iban: 'US12345678901234567890123456',
+      iban: 'RU12345678901234567890123456',
       type: 'Savings',
+      nickname: 'Reserve Fund',
     },
   ],
 

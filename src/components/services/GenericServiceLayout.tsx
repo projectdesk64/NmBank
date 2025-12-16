@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Inbox, CheckCircle2, XCircle, AlertCircle, Clock } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
 
 interface GenericServiceLayoutProps {
   title: string;
@@ -28,19 +29,6 @@ export const GenericServiceLayout: React.FC<GenericServiceLayoutProps> = ({
   summary,
 }) => {
   const { language } = useLanguage();
-
-  // Format currency
-  const formatCurrency = (amount: number, currency: string = 'RUB'): string => {
-    const locale = currency === 'USD' ? 'en-US' : 'ru-RU';
-    const currencyCode = currency === 'USD' ? 'USD' : 'RUB';
-    
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: currencyCode,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
 
   // Format date
   const formatDate = (dateString: string): string => {

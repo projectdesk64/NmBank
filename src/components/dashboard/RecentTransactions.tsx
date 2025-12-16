@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowDownLeft, ArrowUpRight, ChevronRight, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useLanguage } from '@/hooks/useLanguage';
+import { formatCurrency } from '@/utils/formatters';
 
 export interface Transaction {
   id: string;
@@ -144,7 +145,7 @@ export const RecentTransactions = memo(({ data, loading = false }: RecentTransac
                     "text-lg font-bold font-mono tabular-nums",
                     transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
                   )}>
-                    {transaction.type === 'credit' ? '+' : '-'} {formatCurrency(Math.abs(transaction.amount), language)}
+                    {transaction.type === 'credit' ? '+' : '-'} {formatCurrency(Math.abs(transaction.amount))}
                   </p>
                 </div>
 
@@ -177,7 +178,7 @@ export const RecentTransactions = memo(({ data, loading = false }: RecentTransac
                   "text-2xl font-bold font-mono tabular-nums",
                   selectedTransaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
                 )}>
-                  {selectedTransaction.type === 'credit' ? '+' : '-'} {formatCurrency(Math.abs(selectedTransaction.amount), language)}
+                  {selectedTransaction.type === 'credit' ? '+' : '-'} {formatCurrency(Math.abs(selectedTransaction.amount))}
                 </p>
               </div>
               <div>

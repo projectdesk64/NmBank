@@ -1,7 +1,8 @@
 import React, { memo } from 'react';
 import { Wallet, TrendingDown, TrendingUp, PiggyBank } from 'lucide-react';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useLanguage } from '@/hooks/useLanguage';
+import { formatCurrency } from '@/utils/formatters';
 
 interface StatCardProps {
   title: string;
@@ -100,14 +101,14 @@ export const SummaryStats = memo(({
     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
       <StatCard
         title={t.dashboard.summaryStats.totalBalance}
-        amount={formatCurrency(totalBalance, language, { maximumFractionDigits: 0 })}
+        amount={formatCurrency(totalBalance)}
         icon={Wallet}
         borderColor="blue"
         loading={loading}
       />
       <StatCard
         title={t.dashboard.summaryStats.thisMonthSpending}
-        amount={formatCurrency(monthlySpending, language, { maximumFractionDigits: 0 })}
+        amount={formatCurrency(monthlySpending)}
         change={`${spendingChangeType === 'positive' ? '+' : '-'}${spendingChangePercent}%`}
         changeType={spendingChangeType}
         icon={TrendingDown}

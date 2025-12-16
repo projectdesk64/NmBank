@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileText, Calculator, TrendingUp, Receipt, Inbox } from 'lucide-react';
 import { currentUser, FixedDeposit as FixedDepositType } from '@/data/mockData';
+import { formatCurrency } from '@/utils/formatters';
 
 // Local translations
 const pageTranslations = {
@@ -112,16 +113,6 @@ export const FixedDeposits = () => {
 
   const translations = pageTranslations[language];
 
-  // RUB Currency Formatter - Always use Russian Rubles format
-  const formatRUB = (amount: number): string => {
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency: 'RUB',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
-
   // Calculate total principal of active deposits
   const totalPrincipal = fixedDeposits
     .filter((fd) => fd.status === 'Active')
@@ -165,7 +156,7 @@ export const FixedDeposits = () => {
   // Handle FD closure
   const handleCloseFD = (fd: FixedDepositType) => {
     const confirmed = window.confirm(
-      `Are you sure you want to close this deposit of ${formatRUB(fd.principal)}? The funds will be returned to your main balance.`
+      `Are you sure you want to close this deposit of ${formatCurrency(fd.principal)}? The funds will be returned to your main balance.`
     );
     if (!confirmed) {
       return;
@@ -227,7 +218,7 @@ export const FixedDeposits = () => {
 
     toast({
       title: translations.fixedDepositCreated,
-      description: `${translations.successfullyCreated} ${formatRUB(amountNum)}`,
+      description: `${translations.successfullyCreated} ${formatCurrency(amountNum)}`,
     });
 
     setIsModalOpen(false);
@@ -269,7 +260,7 @@ export const FixedDeposits = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">{translations.totalInvestment}</p>
                 <p className="text-3xl font-bold text-nmb-maroon">
-                  {formatRUB(totalPrincipal)}
+                  {formatCurrency(totalPrincipal)}
                 </p>
               </div>
               <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -295,7 +286,7 @@ export const FixedDeposits = () => {
                         step="0.01"
                       />
                       <p className="text-sm text-gray-600">
-                        {translations.availableBalance}: {formatRUB(balance)}
+                        {translations.availableBalance}: {formatCurrency(balance)}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-4 space-y-2">
@@ -397,7 +388,7 @@ export const FixedDeposits = () => {
                           <TableRow key={fd.id} className="hover:bg-gray-50 transition-colors">
                             <TableCell className="font-medium text-nmb-charcoal">{formatFDId(fd)}</TableCell>
                             <TableCell className="font-semibold">
-                              {formatRUB(fd.principal)}
+                              {formatCurrency(fd.principal)}
                             </TableCell>
                             <TableCell>{formatInterestRate(fd.rate)}</TableCell>
                             <TableCell>{formatMaturityDate(fd.maturityDate)}</TableCell>
@@ -440,7 +431,7 @@ export const FixedDeposits = () => {
                           <TableRow key={fd.id} className="hover:bg-gray-50 transition-colors">
                             <TableCell className="font-medium text-nmb-charcoal">{formatFDId(fd)}</TableCell>
                             <TableCell className="font-semibold">
-                              {formatRUB(fd.principal)}
+                              {formatCurrency(fd.principal)}
                             </TableCell>
                             <TableCell>{formatInterestRate(fd.rate)}</TableCell>
                             <TableCell>{formatMaturityDate(fd.maturityDate)}</TableCell>
@@ -538,13 +529,13 @@ export const FixedDeposits = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">{translations.interestEarned}:</span>
                     <span className="font-semibold text-nmb-maroon">
-                      {formatRUB(calculateReturns().interest)}
+                      {formatCurrency(calculateReturns().interest)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-gray-300">
                     <span className="text-sm font-medium text-gray-700">{translations.maturityAmount}:</span>
                     <span className="text-lg font-bold text-nmb-maroon">
-                      {formatRUB(calculateReturns().maturity)}
+                      {formatCurrency(calculateReturns().maturity)}
                     </span>
                   </div>
                 </div>

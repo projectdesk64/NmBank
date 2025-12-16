@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/utils/formatters';
 
 interface FixedDeposit {
   id: string;
@@ -17,15 +18,6 @@ interface AccountDetailsModalProps {
   fixedDeposits: FixedDeposit[];
   onCreateFD: (amount: number) => Promise<void>;
 }
-
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
 
 const formatMaturityDate = (dateString: string): string => {
   try {

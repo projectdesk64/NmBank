@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowUpRight, ArrowDownLeft, Coffee, ShoppingBag, Smartphone, MoreHorizontal } from 'lucide-react';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/formatters';
 import { useLanguage } from '@/hooks/useLanguage';
 
 const TRANSACTIONS = [
@@ -42,7 +43,7 @@ export const TransactionList = () => {
                                 "font-semibold text-sm",
                                 tx.type === 'CREDIT' ? "text-green-600" : "text-nmb-charcoal"
                             )}>
-                                {tx.type === 'DEBIT' ? '-' : '+'}{formatCurrency(Math.abs(tx.amount), language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                {tx.type === 'DEBIT' ? '-' : '+'}{formatCurrency(Math.abs(tx.amount))}
                             </p>
                             <p className="text-xs text-gray-300">{language === 'ru' ? 'RUB' : 'USD'}</p>
                         </div>

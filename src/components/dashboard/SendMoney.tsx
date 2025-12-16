@@ -1,28 +1,29 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Send, Eye, EyeOff, ChevronDown } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Send, ArrowRightLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/hooks/useLanguage';
+import { formatCurrency } from '@/utils/formatters';
 
 interface Account {
   accountNumber: string;
   type: string;
   balance: number;
+  nickname?: string;
 }
 
 interface SendMoneyProps {
   accounts: Account[];
   onTransfer: (from: string, to: string, amount: number) => Promise<void>;
   loading?: boolean;
-  savingsAccountNumber?: string; // User's savings account for FD liquidation
+  savingsAccountNumber?: string; // Kept for backwards compatibility
 }
 
 const formatAccountNumber = (accountNumber: string, revealed: boolean) => {
-  if (!accountNumber) return '****';
+  if (!accountNumber) return '•••• •••• •••• •••• ••••';
   
   // Handle FD accounts (they have IDs like "FD-1234567890")
   const isFD = accountNumber.startsWith('FD-') || accountNumber.startsWith('fd_');
@@ -36,26 +37,39 @@ const formatAccountNumber = (accountNumber: string, revealed: boolean) => {
     return `****${accountNumber.slice(-6)}`;
   }
   
-  // Regular account numbers
+  // Regular account numbers - use 20-digit Russian bank account format
   if (revealed) {
-    return accountNumber;
+    const cleaned = accountNumber.replace(/\s/g, '');
+    // Pad to 20 digits if needed
+    const padded = cleaned.padStart(20, '0');
+    return padded.match(/.{1,4}/g)?.join(' ') || accountNumber;
   }
-  return `****${accountNumber.slice(-4)}`;
+  const lastFour = accountNumber.slice(-4);
+  return `•••• •••• •••• •••• ${lastFour}`;
 };
 
 const validateAccountNumber = (accountNumber: string): boolean => {
   if (!accountNumber || accountNumber.trim().length === 0) return false;
-  // Account number should be numeric and between 9-18 digits (standard banking range)
   const cleaned = accountNumber.replace(/\s/g, '');
-  return /^\d{9,18}$/.test(cleaned);
+  // Allow numeric account numbers (9-20 digits) OR FD-style IDs (alphanumeric with dashes)
+  return /^\d{9,20}$/.test(cleaned) || /^[A-Za-z0-9\-_]{5,}$/.test(cleaned);
 };
 
-export const SendMoney = ({ accounts, onTransfer, loading = false, savingsAccountNumber }: SendMoneyProps) => {
-  const { t, language } = useLanguage();
+// Helper to get display name for accounts
+const getAccountDisplayName = (account: Account): string => {
+  if (account.nickname) return account.nickname;
+  if (account.type === 'Fixed Deposit') {
+    const lastDigits = account.accountNumber.slice(-4);
+    return `Fixed Deposit (...${lastDigits})`;
+  }
+  return account.type;
+};
+
+export const SendMoney = ({ accounts, onTransfer, loading = false }: SendMoneyProps) => {
+  const { t } = useLanguage();
   const [fromAccount, setFromAccount] = useState(accounts[0]?.accountNumber || '');
   const [toAccount, setToAccount] = useState('');
   const [amount, setAmount] = useState('');
-  const [revealedFrom, setRevealedFrom] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showOTPDialog, setShowOTPDialog] = useState(false);
   const [otp, setOtp] = useState('');
@@ -64,17 +78,9 @@ export const SendMoney = ({ accounts, onTransfer, loading = false, savingsAccoun
   const revealTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const selectedAccount = accounts.find(acc => acc.accountNumber === fromAccount);
-  const isFDAccount = selectedAccount?.type === 'Fixed Deposit';
 
-  // Auto-populate "To Account" when FD is selected
-  useEffect(() => {
-    if (isFDAccount && savingsAccountNumber) {
-      setToAccount(savingsAccountNumber);
-    } else if (!isFDAccount) {
-      // Clear toAccount when switching away from FD
-      setToAccount('');
-    }
-  }, [isFDAccount, savingsAccountNumber]);
+  // Get available "Self" accounts (accounts other than the selected one)
+  const selfAccounts = accounts.filter(acc => acc.accountNumber !== fromAccount);
 
   useEffect(() => {
     return () => {
@@ -93,26 +99,20 @@ export const SendMoney = ({ accounts, onTransfer, loading = false, savingsAccoun
       return;
     }
 
-    // For FD accounts, toAccount should be auto-filled with savings account
-    if (isFDAccount) {
-      if (!savingsAccountNumber) {
-        setError("Savings account not found. Cannot liquidate Fixed Deposit.");
-        return;
-      }
-      // Ensure toAccount is set to savings account
-      if (toAccount !== savingsAccountNumber) {
-        setToAccount(savingsAccountNumber);
-      }
-    } else {
-      // For regular transfers, validate beneficiary account number
-      if (!toAccount) {
-        setError(t.dashboard.sendMoney.errorFillAll);
-        return;
-      }
-      if (!validateAccountNumber(toAccount)) {
-        setError(t.dashboard.sendMoney.errorInvalidAccount);
-        return;
-      }
+    // Validate beneficiary account number
+    if (!toAccount) {
+      setError(t.dashboard.sendMoney.errorFillAll);
+      return;
+    }
+    if (!validateAccountNumber(toAccount)) {
+      setError(t.dashboard.sendMoney.errorInvalidAccount);
+      return;
+    }
+
+    // Prevent sending to the same account
+    if (toAccount === fromAccount) {
+      setError("Cannot transfer to the same account.");
+      return;
     }
 
     // Validate amount
@@ -183,81 +183,48 @@ export const SendMoney = ({ accounts, onTransfer, loading = false, savingsAccoun
         <h3 className="text-xl font-heading font-bold text-nmb-charcoal mb-6">{t.dashboard.sendMoney.title}</h3>
         
         {/* Form Fields - Horizontal Layout */}
-        <div className="flex flex-col lg:flex-row gap-4 items-end">
+        <div className="flex flex-col lg:flex-row gap-8 items-end">
           {/* From Account */}
           <div className="flex-1 w-full">
-            <label className="text-xs font-medium text-gray-500 mb-2 block uppercase tracking-wide">
+            <label className="text-xs font-medium text-gray-500 mb-3 block uppercase tracking-wide">
               {t.dashboard.sendMoney.fromAccount}
             </label>
             <div className="relative">
               <Select value={fromAccount} onValueChange={setFromAccount}>
                 <SelectTrigger className="h-14 bg-white border-nmb-mist rounded-xl hover:border-gray-300 transition-colors">
                   <SelectValue>
-                    <div className="flex items-center justify-between w-full pr-2">
-                      <span className="font-mono text-sm text-nmb-charcoal">
-                        {formatAccountNumber(fromAccount, revealedFrom)}
+                    {selectedAccount ? (
+                      <span className="text-sm font-medium text-nmb-charcoal">
+                        {getAccountDisplayName(selectedAccount)}
                       </span>
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          // Clear existing timeout
-                          if (revealTimeoutRef.current) {
-                            clearTimeout(revealTimeoutRef.current);
-                            revealTimeoutRef.current = null;
-                          }
-                          setRevealedFrom(!revealedFrom);
-                          if (!revealedFrom) {
-                            revealTimeoutRef.current = setTimeout(() => {
-                              setRevealedFrom(false);
-                              revealTimeoutRef.current = null;
-                            }, 5000);
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            // Clear existing timeout
-                            if (revealTimeoutRef.current) {
-                              clearTimeout(revealTimeoutRef.current);
-                              revealTimeoutRef.current = null;
-                            }
-                            setRevealedFrom(!revealedFrom);
-                            if (!revealedFrom) {
-                              revealTimeoutRef.current = setTimeout(() => {
-                                setRevealedFrom(false);
-                                revealTimeoutRef.current = null;
-                              }, 5000);
-                            }
-                          }
-                        }}
-                        role="button"
-                        tabIndex={0}
-                        className="p-1.5 hover:bg-nmb-smoke rounded-lg transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-nmb-orange/50"
-                        aria-label={revealedFrom ? 'Hide account' : 'Reveal account'}
-                      >
-                        {revealedFrom ? (
-                          <EyeOff className="h-4 w-4 text-gray-600" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-gray-600" />
-                        )}
-                      </span>
-                    </div>
+                    ) : (
+                      <span className="text-sm text-gray-400">Select account</span>
+                    )}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent position="popper" className="z-[100]">
                   {accounts.map((account) => {
-                    const isFD = account.type === 'Fixed Deposit';
+                    const displayName = getAccountDisplayName(account);
                     return (
-                      <SelectItem key={account.accountNumber} value={account.accountNumber}>
-                        <div className="flex items-center justify-between w-full">
-                          <span className="font-mono text-sm">
-                            {formatAccountNumber(account.accountNumber, false)}
-                          </span>
-                          <span className="text-xs text-gray-500 ml-2">
-                            {account.type}
-                          </span>
+                      <SelectItem 
+                        key={account.accountNumber} 
+                        value={account.accountNumber}
+                        className="py-3 pl-10 pr-4 hover:bg-gray-50 cursor-pointer data-[state=checked]:bg-orange-50 data-[state=checked]:border-l-4 data-[state=checked]:border-orange-600 data-[state=checked]:text-nmb-charcoal"
+                      >
+                        <div className="flex flex-col gap-1 w-full">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-nmb-charcoal">
+                              {displayName}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500 font-mono">
+                              {formatAccountNumber(account.accountNumber, false)}
+                            </span>
+                            <span className="text-xs font-semibold text-nmb-charcoal ml-4">
+                              {formatCurrency(account.balance)}
+                            </span>
+                          </div>
                         </div>
                       </SelectItem>
                     );
@@ -267,37 +234,69 @@ export const SendMoney = ({ accounts, onTransfer, loading = false, savingsAccoun
             </div>
           </div>
 
-          {/* To Account */}
+          {/* To Account / Beneficiary */}
           <div className="flex-1 w-full">
-            <label className="text-xs font-medium text-gray-500 mb-2 block uppercase tracking-wide">
-              {isFDAccount ? "TO ACCOUNT (AUTO)" : t.dashboard.sendMoney.toAccount}
+            <label className="text-xs font-medium text-gray-500 mb-3 block uppercase tracking-wide">
+              TO ACCOUNT / BENEFICIARY
             </label>
-            {isFDAccount ? (
-              <div className="h-14 bg-gray-50 border-nmb-mist rounded-xl flex items-center px-4">
-                <span className="font-mono text-sm text-nmb-charcoal">
-                  {formatAccountNumber(savingsAccountNumber || '', false)}
-                </span>
-                <span className="ml-2 text-xs text-gray-500">(Your Savings Account)</span>
-              </div>
-            ) : (
+            <div className="relative flex gap-2">
               <Input
                 value={toAccount}
                 onChange={(e) => setToAccount(e.target.value)}
-                placeholder={t.dashboard.sendMoney.toAccountPlaceholder}
-                className="h-14 bg-white border-nmb-mist rounded-xl text-sm placeholder:text-gray-400 hover:border-gray-300 transition-colors"
+                placeholder="Enter account number..."
+                className="h-14 bg-white border-nmb-mist rounded-xl text-sm placeholder:text-gray-400 hover:border-gray-300 transition-colors flex-1"
               />
-            )}
+              {/* Self Transfer Button - shows when there are other accounts */}
+              {selfAccounts.length > 0 && (
+                <div className="relative group">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Quick fill with first available self account
+                      if (selfAccounts.length === 1) {
+                        setToAccount(selfAccounts[0].accountNumber);
+                      }
+                    }}
+                    className="h-14 px-3 bg-white border border-nmb-mist rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-colors flex items-center gap-1.5 text-gray-600 hover:text-nmb-charcoal"
+                    title="Fill with own account"
+                  >
+                    <ArrowRightLeft className="h-4 w-4" />
+                    <span className="text-xs font-medium">Self</span>
+                  </button>
+                  {/* Dropdown for multiple self accounts */}
+                  {selfAccounts.length > 1 && (
+                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 min-w-[200px] py-1 hidden group-hover:block">
+                      <div className="px-3 py-1.5 text-xs font-medium text-gray-500 uppercase tracking-wide border-b border-gray-100">
+                        Transfer to self
+                      </div>
+                      {selfAccounts.map((acc) => (
+                        <button
+                          key={acc.accountNumber}
+                          type="button"
+                          onClick={() => setToAccount(acc.accountNumber)}
+                          className="w-full px-3 py-2 text-left hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="text-sm font-medium text-nmb-charcoal">
+                            {getAccountDisplayName(acc)}
+                          </div>
+                          <div className="text-xs text-gray-500 font-mono">
+                            {formatAccountNumber(acc.accountNumber, false)}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Amount */}
           <div className="flex-1 w-full">
-            <label className="text-xs font-medium text-gray-500 mb-2 block uppercase tracking-wide">
+            <label className="text-xs font-medium text-gray-500 mb-3 block uppercase tracking-wide">
               {t.dashboard.sendMoney.amount}
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-nmb-charcoal font-semibold text-sm">
-                {language === 'ru' ? '₽' : '$'}
-              </span>
               <Input
                 type="text"
                 value={amount}
@@ -305,9 +304,12 @@ export const SendMoney = ({ accounts, onTransfer, loading = false, savingsAccoun
                   const value = e.target.value.replace(/[^\d.]/g, '');
                   setAmount(value);
                 }}
-                placeholder={language === 'ru' ? '0,00' : '0.00'}
-                className="h-14 bg-white border-nmb-mist rounded-xl font-mono tabular-nums text-sm pl-8 placeholder:text-gray-400 hover:border-gray-300 transition-colors"
+                placeholder="0.00"
+                className="h-14 bg-white border-nmb-mist rounded-xl font-mono tabular-nums text-sm text-right pr-8 placeholder:text-gray-400 hover:border-gray-300 transition-colors"
               />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-nmb-charcoal font-semibold text-sm pointer-events-none">
+                ₽
+              </span>
             </div>
           </div>
 
@@ -352,7 +354,7 @@ export const SendMoney = ({ accounts, onTransfer, loading = false, savingsAccoun
             <div>
               <p className="text-sm text-gray-600">{t.dashboard.sendMoney.amount}</p>
               <p className="text-2xl font-bold text-nmb-charcoal tabular-nums">
-                {formatCurrency(parseFloat(amount) || 0, language, { maximumFractionDigits: 0 })}
+                {formatCurrency(parseFloat(amount) || 0)}
               </p>
             </div>
           </div>

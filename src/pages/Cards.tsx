@@ -6,24 +6,12 @@ import { currentUser, Card as CardType } from '@/data/mockData';
 import { CreditCard, Inbox, CheckCircle2, XCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/formatters';
 
 export const Cards = () => {
   const { language } = useLanguage();
   const cards = currentUser.cards;
   const [revealedCards, setRevealedCards] = useState<Set<string>>(new Set());
-
-  // Format currency
-  const formatCurrency = (amount: number, currency: string = 'RUB'): string => {
-    const locale = currency === 'USD' ? 'en-US' : 'ru-RU';
-    const currencyCode = currency === 'USD' ? 'USD' : 'RUB';
-    
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: currencyCode,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
 
   // Mask card number
   const maskCardNumber = (cardNumber: string, revealed: boolean): string => {

@@ -1,9 +1,10 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, CreditCard, Copy } from 'lucide-react';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useBalanceStore } from '@/hooks/useBalanceStore';
 import { useLanguage } from '@/hooks/useLanguage';
+import { formatCurrency } from '@/utils/formatters';
 
 interface AccountCardProps {
   type: 'SAVINGS' | 'CURRENT' | 'CREDIT';
@@ -18,7 +19,7 @@ export const AccountCard = ({ type, balance, number, currency = '$', isPrimary }
   const { language } = useLanguage();
 
   // Format balance and split for display
-  const formattedBalance = formatCurrency(balance, language, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formattedBalance = formatCurrency(balance);
   // Try to split by decimal point (works for most currencies)
   const decimalMatch = formattedBalance.match(/[.,]\d{2}/);
   const decimalPart = decimalMatch ? decimalMatch[0].substring(1) : '';
@@ -73,7 +74,7 @@ export const AccountCard = ({ type, balance, number, currency = '$', isPrimary }
       {/* Middle: Number */}
       <div className="flex items-center gap-2 mt-4 opacity-80 z-10">
         <span className="font-mono text-sm tracking-widest">
-          •••• •••• {number.slice(-4)}
+          •••• •••• •••• •••• {number.slice(-4)}
         </span>
         <Copy className="w-3 h-3 cursor-pointer hover:opacity-100 transition-opacity" />
       </div>

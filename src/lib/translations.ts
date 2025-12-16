@@ -354,6 +354,11 @@ export interface Translations {
         starbucks: string;
       };
     };
+    spendingOverview: {
+      title: string;
+      thisMonthExpenses: string;
+      totalSpending: string;
+    };
     sendMoney: {
       title: string;
       fromAccount: string;
@@ -751,6 +756,11 @@ export const translations: Record<Language, Translations> = {
           starbucks: 'Starbucks',
         },
       },
+      spendingOverview: {
+        title: 'Spending Overview',
+        thisMonthExpenses: "This month's expenses",
+        totalSpending: 'TOTAL SPENDING',
+      },
       sendMoney: {
         title: 'Send Money',
         fromAccount: 'FROM ACCOUNT',
@@ -1145,6 +1155,11 @@ export const translations: Record<Language, Translations> = {
           netflix: 'Netflix',
           starbucks: 'Starbucks',
         },
+      },
+      spendingOverview: {
+        title: 'Обзор расходов',
+        thisMonthExpenses: 'Расходы за этот месяц',
+        totalSpending: 'ОБЩИЕ РАСХОДЫ',
       },
       sendMoney: {
         title: 'Отправить деньги',

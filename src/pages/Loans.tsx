@@ -6,23 +6,11 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { currentUser, Loan } from '@/data/mockData';
 import { TrendingUp, Inbox, CheckCircle2, XCircle, AlertCircle, Calendar, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/formatters';
 
 export const Loans = () => {
   const { language } = useLanguage();
   const loans = currentUser.loans.filter(loan => loan.status === 'Active');
-
-  // Format currency
-  const formatCurrency = (amount: number, currency: string = 'RUB'): string => {
-    const locale = currency === 'USD' ? 'en-US' : 'ru-RU';
-    const currencyCode = currency === 'USD' ? 'USD' : 'RUB';
-    
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: currencyCode,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
 
   // Format date
   const formatDate = (dateString: string): string => {

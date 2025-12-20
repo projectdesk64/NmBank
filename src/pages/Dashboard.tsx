@@ -12,7 +12,7 @@ import { AccountDetailsModal } from '@/components/dashboard/AccountDetailsModal'
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatCurrency } from '@/utils/formatters';
-import { spendingStats } from '@/data/mockData';
+
 import { useUser } from '@/contexts/UserContext';
 
 
@@ -193,40 +193,6 @@ export const Dashboard = () => {
   // const activeFDCount = activeDeposits.length;
 
   // Calculate monthly spending (debits from current month) - using mock data
-  const monthlySpending = useMemo(() => {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    // Calculate from mock data
-    const mockSpending = user.transactions
-      .filter(tx => {
-        try {
-          const txDate = new Date(tx.date);
-          return txDate >= startOfMonth && tx.type === 'debit';
-        } catch {
-          return false;
-        }
-      })
-      .reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0);
-
-    // Fallback logic simplified for context data (always string dates)
-    if (mockSpending === 0 && transactions && transactions.length > 0) {
-      return transactions
-        .filter(tx => {
-          if (!tx.date) return false;
-          try {
-            const txDate = new Date(tx.date as string);
-            return txDate >= startOfMonth && tx.type === 'debit';
-          } catch {
-            return false;
-          }
-        })
-        .reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0);
-    }
-
-    return mockSpending;
-  }, [transactions]);
-
   // Use the provided mock spending stats if available
   const displayMonthlySpending = 0;
 

@@ -1,9 +1,12 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User, Transaction } from '../types';
 import { currentUser as defaultUser } from '../data/mockData';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 
 interface UserContextType {
-    user: User;
+    user: User | null;
+    loading: boolean;
     transferMoney: (fromAccountNo: string, toAccountNo: string, amount: number) => Promise<void>;
     updateUser: (updates: Partial<User>) => void;
 }
@@ -11,30 +14,39 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User>(defaultUser);
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const stored = localStorage.getItem('previousLoginTime');
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            if (firebaseUser) {
+                // In a real app, we would fetch the user profile from Firestore here.
+                // For this demo, we will use the mock 'defaultUser' but ensure the session is valid.
+                setUser(prev => ({
+                    ...defaultUser,
+                    // Optional: You could sync email from firebaseUser if needed
+                    // email: firebaseUser.email || defaultUser.email 
+                    lastLogin: prev?.lastLogin || new Date().toLocaleString('en-US', {
+                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    })
+                }));
+            } else {
+                setUser(null);
+            }
+            setLoading(false);
+        });
 
-        if (stored) {
-            // Logic to format and set state
-            const formatted = new Date(stored).toLocaleString('en-US', {
-                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            });
-            setUser(prev => ({ ...prev, lastLogin: formatted }));
-        } else {
-            setUser(prev => ({ ...prev, lastLogin: "First Session" }));
-        }
-
-        // Save CURRENT time for next visit
-        localStorage.setItem('previousLoginTime', new Date().toISOString());
+        return () => unsubscribe();
     }, []);
 
     const transferMoney = async (fromAccountNo: string, toAccountNo: string, amount: number) => {
+        if (!user) throw new Error("User not authenticated");
+
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         setUser(prevUser => {
+            if (!prevUser) return null;
             const newUser = { ...prevUser };
 
             // 1. Find Source Account
@@ -51,10 +63,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
             // 2. Find Destination Account
             const destAccountIndex = newUser.accounts.findIndex(acc => acc.accountNumber === toAccountNo);
-
-            // Only update destination if it belongs to the user (Internal Transfer)
-            // The requirement says: "Update: Deduct amount from source, add amount to destination"
-            // If toAccount is external, we only deduct. But user scenario is transfer to "Fixed Deposit 2025" (internal).
 
             if (destAccountIndex !== -1) {
                 const destAccount = { ...newUser.accounts[destAccountIndex] };
@@ -97,11 +105,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateUser = (updates: Partial<User>) => {
-        setUser(prev => ({ ...prev, ...updates }));
+        setUser(prev => (prev ? { ...prev, ...updates } : null));
     };
 
     return (
-        <UserContext.Provider value={{ user, transferMoney, updateUser }}>
+        <UserContext.Provider value={{ user, loading, transferMoney, updateUser }}>
             {children}
         </UserContext.Provider>
     );

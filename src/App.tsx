@@ -4,6 +4,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Skeleton } from './components/ui/skeleton';
 import { Toaster } from '@/components/ui/toaster';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Lazy load pages for better code splitting
 const LandingPage = lazy(() => import('./pages/LandingPage').then(module => ({ default: module.LandingPage })));
@@ -43,19 +44,24 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/dashboard/settings" element={<Settings />} />
-              <Route path="/dashboard/accounts" element={<Accounts />} />
-              <Route path="/dashboard/cards" element={<Cards />} />
-              <Route path="/dashboard/transactions" element={<TransactionsPage />} />
-              <Route path="/dashboard/fixed-deposits" element={<FixedDeposits />} />
-              <Route path="/dashboard/investments" element={<ServicePage />} />
-              <Route path="/dashboard/loans" element={<Loans />} />
-              <Route path="/profile" element={<CustomerProfile />} />
-              <Route path="/dashboard/insurance" element={<ServicePage />} />
-              <Route path="/dashboard/payments" element={<ServicePage />} />
-              <Route path="/dashboard/services/*" element={<ServicePage />} />
-              <Route path="/services/:slug" element={<ServicePage />} />
+
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard/settings" element={<Settings />} />
+                <Route path="/dashboard/accounts" element={<Accounts />} />
+                <Route path="/dashboard/cards" element={<Cards />} />
+                <Route path="/dashboard/transactions" element={<TransactionsPage />} />
+                <Route path="/dashboard/fixed-deposits" element={<FixedDeposits />} />
+                <Route path="/dashboard/investments" element={<ServicePage />} />
+                <Route path="/dashboard/loans" element={<Loans />} />
+                <Route path="/profile" element={<CustomerProfile />} />
+                <Route path="/dashboard/insurance" element={<ServicePage />} />
+                <Route path="/dashboard/payments" element={<ServicePage />} />
+                <Route path="/dashboard/services/*" element={<ServicePage />} />
+                <Route path="/services/:slug" element={<ServicePage />} />
+              </Route>
+
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />

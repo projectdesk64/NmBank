@@ -17,6 +17,7 @@ const FixedDeposits = lazy(() => import('./pages/FixedDeposits').then(module => 
 const Accounts = lazy(() => import('./pages/Accounts').then(module => ({ default: module.Accounts })));
 const Cards = lazy(() => import('./pages/Cards').then(module => ({ default: module.Cards })));
 const Loans = lazy(() => import('./pages/Loans').then(module => ({ default: module.Loans })));
+const CustomerProfile = lazy(() => import('./pages/CustomerProfile').then(module => ({ default: module.CustomerProfile })));
 const NotFound = lazy(() => import('./pages/NotFound')); // Already default export
 
 // Loading fallback component
@@ -34,7 +35,7 @@ function App() {
   return (
     <ErrorBoundary>
       <LanguageProvider>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
@@ -49,6 +50,7 @@ function App() {
               <Route path="/dashboard/fixed-deposits" element={<FixedDeposits />} />
               <Route path="/dashboard/investments" element={<ServicePage />} />
               <Route path="/dashboard/loans" element={<Loans />} />
+              <Route path="/profile" element={<CustomerProfile />} />
               <Route path="/dashboard/insurance" element={<ServicePage />} />
               <Route path="/dashboard/payments" element={<ServicePage />} />
               <Route path="/dashboard/services/*" element={<ServicePage />} />

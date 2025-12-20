@@ -1,14 +1,17 @@
-import { useState } from "react";
 import { Header } from "@/components/dashboard/Header";
+import { useUser } from "@/contexts/UserContext";
 import { AccountCard } from "@/components/dashboard/AccountCard";
 import { QuickTransfer } from "@/components/dashboard/QuickTransfer";
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
-import { Wallet, PiggyBank, TrendingUp, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActionList } from "@/components/dashboard/ActionList";
+import { useBalanceStore } from "@/hooks/useBalanceStore";
 
 export const Index = () => {
-  const [showBalances, setShowBalances] = useState(true);
+  const { isVisible, toggleVisibility } = useBalanceStore();
+  const { user } = useUser();
+
 
   return (
     <div className="min-h-screen bg-background pb-12 font-body selection:bg-banking-blue/20">
@@ -19,15 +22,15 @@ export const Index = () => {
         {/* Welcome Section */}
         <div className="flex items-end justify-between">
           <div>
-            <h1 className="text-3xl font-heading font-bold text-maroon tracking-tight">Welcome, Alexei</h1>
-            <p className="text-muted-foreground mt-1 text-sm font-medium">Last login: Today, 09:41 AM</p>
+            <h1 className="text-3xl font-heading font-bold text-maroon tracking-tight">Welcome, {user.name.split(' ')[0]}</h1>
+            <p className="text-muted-foreground mt-1 text-sm font-medium">Last login: {user.lastLogin || "First Session"}</p>
           </div>
           <Button
             variant="ghost"
-            onClick={() => setShowBalances(!showBalances)}
+            onClick={toggleVisibility}
             className="text-banking-blue hover:text-banking-blue/80 hover:bg-banking-blue/5 gap-2 font-medium"
           >
-            {showBalances ? (
+            {isVisible ? (
               <>
                 <EyeOff className="h-4 w-4" /> Hide Balances
               </>
@@ -42,30 +45,20 @@ export const Index = () => {
         {/* Account Cards Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <AccountCard
-            title="Savings Account"
+            type="SAVINGS"
             balance={1250340.75}
-            accountNumber="4521"
-            icon={Wallet}
-            variant="default"
-            showBalance={showBalances}
+            number="4521"
+            isPrimary={true}
           />
           <AccountCard
-            title="Current Account"
+            type="CURRENT"
             balance={89450.00}
-            accountNumber="7832"
-            icon={PiggyBank}
-            variant="blue"
-            showBalance={showBalances}
-            delay={100}
+            number="7832"
           />
           <AccountCard
-            title="Investment Portfolio"
+            type="CREDIT"
             balance={2500000.00}
-            accountNumber="9156"
-            icon={TrendingUp}
-            variant="orange"
-            showBalance={showBalances}
-            delay={200}
+            number="9156"
           />
         </div>
 

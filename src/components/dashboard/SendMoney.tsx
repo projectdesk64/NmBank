@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatCurrency } from '@/utils/formatters';
+import { useUser } from '@/contexts/UserContext';
 
 interface Account {
   accountNumber: string;
@@ -17,17 +18,17 @@ interface Account {
 
 interface SendMoneyProps {
   accounts: Account[];
-  onTransfer: (from: string, to: string, amount: number) => Promise<void>;
+  onTransfer?: (from: string, to: string, amount: number) => Promise<void>; // Made optional
   loading?: boolean;
   savingsAccountNumber?: string; // Kept for backwards compatibility
 }
 
 const formatAccountNumber = (accountNumber: string, revealed: boolean) => {
   if (!accountNumber) return '•••• •••• •••• •••• ••••';
-  
+
   // Handle FD accounts (they have IDs like "FD-1234567890")
   const isFD = accountNumber.startsWith('FD-') || accountNumber.startsWith('fd_');
-  
+
   if (isFD) {
     // For FD accounts, show the full ID or a shortened version
     if (revealed) {
@@ -36,7 +37,7 @@ const formatAccountNumber = (accountNumber: string, revealed: boolean) => {
     // Show last 6 characters for FD
     return `****${accountNumber.slice(-6)}`;
   }
-  
+
   // Regular account numbers - use 20-digit Russian bank account format
   if (revealed) {
     const cleaned = accountNumber.replace(/\s/g, '');
@@ -65,8 +66,10 @@ const getAccountDisplayName = (account: Account): string => {
   return account.type;
 };
 
-export const SendMoney = ({ accounts, onTransfer, loading = false }: SendMoneyProps) => {
+export const SendMoney = ({ accounts, loading = false }: SendMoneyProps) => {
   const { t } = useLanguage();
+  const { transferMoney } = useUser();
+
   const [fromAccount, setFromAccount] = useState(accounts[0]?.accountNumber || '');
   const [toAccount, setToAccount] = useState('');
   const [amount, setAmount] = useState('');
@@ -92,7 +95,7 @@ export const SendMoney = ({ accounts, onTransfer, loading = false }: SendMoneyPr
 
   const handleProceed = () => {
     const amountNum = parseFloat(amount);
-    
+
     // Validate all fields
     if (!fromAccount || !amount || isNaN(amountNum) || amountNum <= 0) {
       setError(t.dashboard.sendMoney.errorFillAll);
@@ -146,12 +149,12 @@ export const SendMoney = ({ accounts, onTransfer, loading = false }: SendMoneyPr
       setError(t.dashboard.sendMoney.errorInvalidOTP);
       return;
     }
-    
+
     setTransferring(true);
     setError(null);
-    
+
     try {
-      await onTransfer(fromAccount, toAccount, parseFloat(amount));
+      await transferMoney(fromAccount, toAccount, parseFloat(amount));
       setShowOTPDialog(false);
       setAmount('');
       setToAccount('');
@@ -181,7 +184,7 @@ export const SendMoney = ({ accounts, onTransfer, loading = false }: SendMoneyPr
       <div className="bg-nmb-smoke rounded-2xl p-6 shadow-large">
         {/* Title */}
         <h3 className="text-xl font-heading font-bold text-nmb-charcoal mb-6">{t.dashboard.sendMoney.title}</h3>
-        
+
         {/* Form Fields - Horizontal Layout */}
         <div className="flex flex-col lg:flex-row gap-8 items-end">
           {/* From Account */}
@@ -206,8 +209,8 @@ export const SendMoney = ({ accounts, onTransfer, loading = false }: SendMoneyPr
                   {accounts.map((account) => {
                     const displayName = getAccountDisplayName(account);
                     return (
-                      <SelectItem 
-                        key={account.accountNumber} 
+                      <SelectItem
+                        key={account.accountNumber}
                         value={account.accountNumber}
                         className="py-3 pl-10 pr-4 hover:bg-gray-50 cursor-pointer data-[state=checked]:bg-orange-50 data-[state=checked]:border-l-4 data-[state=checked]:border-orange-600 data-[state=checked]:text-nmb-charcoal"
                       >
@@ -394,8 +397,8 @@ export const SendMoney = ({ accounts, onTransfer, loading = false }: SendMoneyPr
             <Button variant="outline" onClick={() => setShowOTPDialog(false)}>
               {t.dashboard.sendMoney.cancel}
             </Button>
-            <Button 
-              onClick={handleOTPSubmit} 
+            <Button
+              onClick={handleOTPSubmit}
               disabled={transferring || otp.length !== 6}
               className="bg-nmb-maroon hover:bg-[#6e0e00]"
             >

@@ -1,8 +1,9 @@
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/useLanguage';
-import { currentUser, Card as CardType } from '@/data/mockData';
+import { useUser } from '@/contexts/UserContext';
+import { Card as CardType } from '@/types';
 import { CreditCard, Inbox, CheckCircle2, XCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -10,7 +11,8 @@ import { formatCurrency } from '@/utils/formatters';
 
 export const Cards = () => {
   const { language } = useLanguage();
-  const cards = currentUser.cards;
+  const { user } = useUser();
+  const cards = user.cards;
   const [revealedCards, setRevealedCards] = useState<Set<string>>(new Set());
 
   // Mask card number
@@ -117,7 +119,7 @@ export const Cards = () => {
             {cards.map((card) => {
               const isRevealed = revealedCards.has(card.id);
               const gradient = getCardGradient(card.type, card.status);
-              
+
               return (
                 <div
                   key={card.id}

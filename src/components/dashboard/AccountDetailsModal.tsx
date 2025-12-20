@@ -3,13 +3,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/formatters';
 
-interface FixedDeposit {
-  id: string;
-  principal: number;
-  interestRate: string;
-  maturityDate: string;
-  status: string;
-}
+import { FixedDeposit } from '@/types';
 
 interface AccountDetailsModalProps {
   isOpen: boolean;
@@ -58,7 +52,7 @@ export const AccountDetailsModal: React.FC<AccountDetailsModalProps> = ({
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       const originalOverflow = document.body.style.overflow;
       const originalPaddingRight = document.body.style.paddingRight;
-      
+
       document.body.style.overflow = 'hidden';
       if (scrollbarWidth > 0) {
         document.body.style.paddingRight = `${scrollbarWidth}px`;
@@ -79,7 +73,7 @@ export const AccountDetailsModal: React.FC<AccountDetailsModalProps> = ({
 
   const handleConfirm = async () => {
     if (!isValidAmount || isSubmitting) return;
-    
+
     setIsSubmitting(true);
     try {
       await onCreateFD(amountNum);
@@ -143,7 +137,7 @@ export const AccountDetailsModal: React.FC<AccountDetailsModalProps> = ({
                             {formatCurrency(fd.principal)}
                           </div>
                           <div className="text-sm text-gray-600 mt-1">
-                            Rate: {fd.interestRate}% p.a.
+                            Rate: {fd.rate}% p.a.
                           </div>
                         </div>
                         <div className="text-right">

@@ -3,6 +3,7 @@ import App from "./App.tsx";
 import "./index.css";
 import favicon from "./assets/favicon-32x32.png";
 import { Toaster } from "@/components/ui/toaster";
+import { UserProvider } from "@/contexts/UserContext";
 
 // Set favicon dynamically
 const setFavicon = (url: string) => {
@@ -40,7 +41,7 @@ const setupGlobalErrorHandlers = () => {
   window.addEventListener('unhandledrejection', (event) => {
     const error = event.reason;
     const errorMessage = error?.message || String(error);
-    
+
     if (isExtensionError(errorMessage)) {
       // Silently ignore extension errors - they don't affect the app
       event.preventDefault();
@@ -50,7 +51,7 @@ const setupGlobalErrorHandlers = () => {
       }
       return;
     }
-    
+
     // Log other unhandled promise rejections in development
     if (import.meta.env.DEV) {
       console.error('Unhandled promise rejection:', error);
@@ -61,7 +62,7 @@ const setupGlobalErrorHandlers = () => {
   const originalError = window.onerror;
   window.onerror = (message, source, lineno, colno, error) => {
     const errorMessage = String(message);
-    
+
     if (isExtensionError(errorMessage)) {
       // Silently ignore extension errors
       if (import.meta.env.DEV) {
@@ -69,12 +70,12 @@ const setupGlobalErrorHandlers = () => {
       }
       return true; // Prevent default error handling
     }
-    
+
     // Call original error handler for other errors
     if (originalError) {
       return originalError(message, source, lineno, colno, error);
     }
-    
+
     return false; // Let default error handling proceed
   };
 
@@ -82,15 +83,15 @@ const setupGlobalErrorHandlers = () => {
   const originalConsoleError = console.error;
   console.error = (...args: unknown[]) => {
     const errorMessage = args
-      .map(arg => 
-        typeof arg === 'string' 
-          ? arg 
-          : arg instanceof Error 
-            ? arg.message 
+      .map(arg =>
+        typeof arg === 'string'
+          ? arg
+          : arg instanceof Error
+            ? arg.message
             : String(arg)
       )
       .join(' ');
-    
+
     if (isExtensionError(errorMessage)) {
       // Suppress extension errors from console
       if (import.meta.env.DEV) {
@@ -98,7 +99,7 @@ const setupGlobalErrorHandlers = () => {
       }
       return;
     }
-    
+
     // Call original console.error for non-extension errors
     originalConsoleError.apply(console, args);
   };
@@ -117,7 +118,7 @@ const preserveScrollbar = () => {
   if (document.documentElement.hasAttribute('data-scroll-locked')) {
     document.documentElement.removeAttribute('data-scroll-locked');
   }
-  
+
   // Only prevent overflow:hidden if not a dialog (dialogs should lock scroll)
   if (!document.body.classList.contains('dialog-open')) {
     if (document.body.style.overflow === 'hidden') {
@@ -138,8 +139,8 @@ if (!rootElement) {
 }
 
 createRoot(rootElement).render(
-  <>
+  <UserProvider>
     <App />
     <Toaster />
-  </>
+  </UserProvider>
 );

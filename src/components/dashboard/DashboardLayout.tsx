@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  Search, Headphones, Bell, ArrowRight, Phone, Mail, User, CreditCard,
+  Search, Headphones, Bell, Phone, Mail, User, CreditCard,
   LayoutDashboard, Send, PiggyBank, Banknote, History
 } from 'lucide-react';
 import { onAuthStateChanged, User as FirebaseUser, signOut } from 'firebase/auth';
@@ -9,7 +9,6 @@ import { auth, db } from '@/lib/firebase';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import nmbLogo from '@/assets/nmb-logo.svg';
 import { Footer } from '@/components/layout/Footer';
-import { useMediaQuery } from '@/hooks/use-media-query';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { CustomerDetailsModal } from '@/components/dashboard/CustomerDetailsModal';
@@ -152,13 +151,21 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
 
   const handleLogout = async () => {
     try {
+      // 1. Clear all local/session storage to remove sensitive cached data
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // 2. Sign out from Firebase
       await signOut(auth);
+
+      // 3. Redirect to login
       navigate('/login');
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.error('Error signing out:', error);
+        console.error('Logout failed:', error);
       }
-      // Could show a toast notification here for production
+      // Fallback redirect even if error
+      navigate('/login');
     }
   };
 

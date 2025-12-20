@@ -16,7 +16,7 @@ const SEARCH_INDEX = [
     subtitle: 'Auth Signer: Thynana Gopi Priyanka | ID: NMB-78229100',
     path: '/profile',
     icon: 'User',
-    keywords: ['customer', 'profile', 'shravan', 'details', 'kyc']
+    keywords: ['c', 'customer', 'profile', 'shravan', 'details', 'kyc']
   },
   {
     id: 'acc1',

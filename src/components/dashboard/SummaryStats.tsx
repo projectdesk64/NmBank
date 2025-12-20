@@ -12,9 +12,10 @@ interface StatCardProps {
   icon: React.ElementType;
   borderColor: 'blue' | 'orange' | 'maroon';
   loading?: boolean;
+  className?: string;
 }
 
-const StatCard = memo(({ title, amount, change, changeType, icon: Icon, borderColor, loading }: StatCardProps) => {
+const StatCard = memo(({ title, amount, change, changeType, icon: Icon, borderColor, loading, className }: StatCardProps) => {
   const { t } = useLanguage();
   const borderColors = {
     blue: 'border-t-nmb-blue',
@@ -35,7 +36,8 @@ const StatCard = memo(({ title, amount, change, changeType, icon: Icon, borderCo
   return (
     <div className={cn(
       "bg-white rounded-2xl p-7 border-t-5 shadow-large hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 hover:-translate-y-1",
-      borderColors[borderColor]
+      borderColors[borderColor],
+      className
     )}>
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
@@ -79,19 +81,19 @@ const StatCard = memo(({ title, amount, change, changeType, icon: Icon, borderCo
 });
 
 interface SummaryStatsProps {
-  totalBalance: number;
+  totalBalance: number | string;
   monthlySpending: number;
   activeFDs: number;
   spendingChange?: number;
   loading?: boolean;
 }
 
-export const SummaryStats = memo(({ 
-  totalBalance, 
-  monthlySpending, 
-  activeFDs, 
+export const SummaryStats = memo(({
+  totalBalance,
+  monthlySpending,
+  activeFDs,
   spendingChange = 0,
-  loading = false 
+  loading = false
 }: SummaryStatsProps) => {
   const { t, language } = useLanguage();
   const spendingChangePercent = Math.abs(spendingChange);
@@ -101,7 +103,7 @@ export const SummaryStats = memo(({
     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
       <StatCard
         title={t.dashboard.summaryStats.totalBalance}
-        amount={formatCurrency(totalBalance)}
+        amount={typeof totalBalance === 'string' ? totalBalance : formatCurrency(totalBalance)}
         icon={Wallet}
         borderColor="blue"
         loading={loading}
@@ -114,6 +116,7 @@ export const SummaryStats = memo(({
         icon={TrendingDown}
         borderColor="orange"
         loading={loading}
+        className={monthlySpending === 0 ? "opacity-50 grayscale pointer-events-none select-none" : ""}
       />
       <StatCard
         title={t.dashboard.summaryStats.activeFDs}

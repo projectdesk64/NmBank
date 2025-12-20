@@ -14,7 +14,7 @@ interface Account {
   id: string;
   type: 'savings' | 'current' | 'fd';
   accountNumber: string;
-  balance: number;
+  balance: number | string;
   nickname?: string;
   ifsc?: string;
   branch?: string;
@@ -146,7 +146,7 @@ export const AccountsTabs = ({
   const tabs: Tab[] = accounts.map((account) => {
     const isRevealed = revealedAccounts.has(account.id);
     const config = accountConfig[account.type];
-    
+
     // Use nickname if available, otherwise fallback to account type
     const label = account.nickname || getAccountLabel(account.type, t);
 
@@ -178,16 +178,16 @@ export const AccountsTabs = ({
                     {(() => {
                       // Check if accountNumber is a text label (not a numeric account number)
                       const isTextLabel = !/^\d/.test(account.accountNumber) && !account.accountNumber.includes('****');
-                      const displayText = isTextLabel 
-                        ? account.accountNumber 
+                      const displayText = isTextLabel
+                        ? account.accountNumber
                         : formatAccountNumber(account.accountNumber, isRevealed);
-                      
+
                       return (
                         <>
                           <p className={cn(
                             "text-xl font-semibold text-nmb-charcoal",
-                            isTextLabel 
-                              ? "font-sans font-medium tracking-normal" 
+                            isTextLabel
+                              ? "font-sans font-medium tracking-normal"
                               : "font-mono tracking-wider"
                           )}>
                             {displayText}
@@ -216,124 +216,124 @@ export const AccountsTabs = ({
               </div>
             </div>
 
-             {/* Balance Section */}
-             <div className="mb-6">
-               <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-                 {t.dashboard.accounts.availableBalance}
-               </p>
-               <p className="text-4xl font-heading font-bold text-nmb-charcoal tabular-nums leading-tight">
-                 {showBalance ? (
-                   formatCurrency(account.balance)
-                 ) : (
-                   <span className="inline-flex items-center gap-2">
-                     <span className="text-gray-400">{language === 'ru' ? '₽' : '₹'}</span>
-                     <span className="flex gap-1.5">
-                       {[1, 2, 3, 4, 5, 6].map((i) => (
-                         <span key={i} className="w-2.5 h-2.5 bg-gray-300 rounded-full"></span>
-                       ))}
-                     </span>
-                   </span>
-                 )}
-               </p>
-             </div>
+            {/* Balance Section */}
+            <div className="mb-6">
+              <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                {t.dashboard.accounts.availableBalance}
+              </p>
+              <p className="text-4xl font-heading font-bold text-nmb-charcoal tabular-nums leading-tight">
+                {showBalance ? (
+                  typeof account.balance === 'string' ? account.balance : formatCurrency(account.balance)
+                ) : (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="text-gray-400">{language === 'ru' ? '₽' : '₹'}</span>
+                    <span className="flex gap-1.5">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <span key={i} className="w-2.5 h-2.5 bg-gray-300 rounded-full"></span>
+                      ))}
+                    </span>
+                  </span>
+                )}
+              </p>
+            </div>
 
-             {/* Account Details Grid */}
-             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-               {/* IFSC Code */}
-               {account.ifsc && (
-                 <div>
-                   <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
-                     {t.dashboard.accounts.ifscCode}
-                   </p>
-                   <p className="text-sm font-mono font-semibold text-nmb-charcoal">
-                     {account.ifsc}
-                   </p>
-                 </div>
-               )}
+            {/* Account Details Grid */}
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+              {/* IFSC Code */}
+              {account.ifsc && (
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                    {t.dashboard.accounts.ifscCode}
+                  </p>
+                  <p className="text-sm font-mono font-semibold text-nmb-charcoal">
+                    {account.ifsc}
+                  </p>
+                </div>
+              )}
 
-               {/* Branch */}
-               {account.branch && (
-                 <div>
-                   <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
-                     {t.dashboard.accounts.branch}
-                   </p>
-                   <p className="text-sm font-medium text-nmb-charcoal">
-                     {account.branch === 'Cyber City Main' 
-                       ? t.dashboard.accounts.branchNames.cyberCityMain 
-                       : account.branch}
-                   </p>
-                 </div>
-               )}
+              {/* Branch */}
+              {account.branch && (
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                    {t.dashboard.accounts.branch}
+                  </p>
+                  <p className="text-sm font-medium text-nmb-charcoal">
+                    {account.branch === 'Cyber City Main'
+                      ? t.dashboard.accounts.branchNames.cyberCityMain
+                      : account.branch}
+                  </p>
+                </div>
+              )}
 
-               {/* Account Type Specific Info */}
-               {account.type === 'fd' && (
-                 <>
-                   {account.interestRate && (
-                     <div>
-                       <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
-                         {t.dashboard.accounts.interestRate}
-                       </p>
-                       <p className="text-sm font-semibold text-green-600">
-                         {account.interestRate}
-                       </p>
-                     </div>
-                   )}
-                   {account.maturityDate && (
-                     <div>
-                       <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
-                         {t.dashboard.accounts.maturityDate}
-                       </p>
-                       <p className="text-sm font-medium text-nmb-charcoal">
-                         {account.maturityDate}
-                       </p>
-                     </div>
-                   )}
-                 </>
-               )}
+              {/* Account Type Specific Info */}
+              {account.type === 'fd' && (
+                <>
+                  {account.interestRate && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                        {t.dashboard.accounts.interestRate}
+                      </p>
+                      <p className="text-sm font-semibold text-green-600">
+                        {account.interestRate}
+                      </p>
+                    </div>
+                  )}
+                  {account.maturityDate && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                        {t.dashboard.accounts.maturityDate}
+                      </p>
+                      <p className="text-sm font-medium text-nmb-charcoal">
+                        {account.maturityDate}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
 
-               {/* Default Account Status */}
-               {account.type !== 'fd' && (
-                 <>
-                   <div>
-                     <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
-                       {t.dashboard.accounts.accountStatus}
-                     </p>
-                     <div className="flex items-center gap-2">
-                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                       <p className="text-sm font-medium text-nmb-charcoal">
-                         {t.dashboard.accounts.active}
-                       </p>
-                     </div>
-                   </div>
-                   {!account.ifsc && !account.branch && (
-                     <div>
-                       <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
-                         {t.dashboard.accounts.accountType}
-                       </p>
-                       <p className="text-sm font-medium text-nmb-charcoal capitalize">
-                         {getAccountLabel(account.type, t)}
-                       </p>
-                     </div>
-                   )}
-                 </>
-               )}
-             </div>
+              {/* Default Account Status */}
+              {account.type !== 'fd' && (
+                <>
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                      {t.dashboard.accounts.accountStatus}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <p className="text-sm font-medium text-nmb-charcoal">
+                        {t.dashboard.accounts.active}
+                      </p>
+                    </div>
+                  </div>
+                  {!account.ifsc && !account.branch && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                        {t.dashboard.accounts.accountType}
+                      </p>
+                      <p className="text-sm font-medium text-nmb-charcoal capitalize">
+                        {getAccountLabel(account.type, t)}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
 
-             {/* Footer: View Details Button */}
-             {onViewDetails && (
-               <div className="mt-6 pt-6 border-t border-gray-100">
-                 <Button
-                   onClick={(e) => {
-                     e.stopPropagation();
-                     onViewDetails(account.type);
-                   }}
-                   variant="outline"
-                   className="w-full border-nmb-maroon/30 text-nmb-maroon hover:bg-nmb-maroon/10 hover:border-nmb-maroon transition-colors"
-                 >
-                   View Details
-                 </Button>
-               </div>
-             )}
+            {/* Footer: View Details Button */}
+            {onViewDetails && (
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewDetails(account.type);
+                  }}
+                  variant="outline"
+                  className="w-full border-nmb-maroon/30 text-nmb-maroon hover:bg-nmb-maroon/10 hover:border-nmb-maroon transition-colors"
+                >
+                  View Details
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       ),

@@ -66,7 +66,7 @@ const getAccountDisplayName = (account: Account): string => {
   return account.type;
 };
 
-export const SendMoney = ({ accounts, loading = false }: SendMoneyProps) => {
+export const SendMoney = ({ accounts, loading = false, onTransfer }: SendMoneyProps) => {
   const { t } = useLanguage();
   const { transferMoney } = useUser();
 
@@ -144,6 +144,7 @@ export const SendMoney = ({ accounts, loading = false }: SendMoneyProps) => {
     setShowOTPDialog(true);
   };
 
+
   const handleOTPSubmit = async () => {
     if (otp.length !== 6) {
       setError(t.dashboard.sendMoney.errorInvalidOTP);
@@ -153,13 +154,22 @@ export const SendMoney = ({ accounts, loading = false }: SendMoneyProps) => {
     setTransferring(true);
     setError(null);
 
+
+
     try {
-      await transferMoney(fromAccount, toAccount, parseFloat(amount));
+      // Use the provided onTransfer prop if available (handles toasts), otherwise fallback to context
+      if (onTransfer) {
+        await onTransfer(fromAccount, toAccount, parseFloat(amount));
+      } else {
+        await transferMoney(fromAccount, toAccount, parseFloat(amount));
+      }
+
       setShowOTPDialog(false);
       setAmount('');
       setToAccount('');
       setOtp('');
     } catch (err: any) {
+      console.error("Transfer error:", err);
       setError(err.message || t.dashboard.sendMoney.errorTransferFailed);
     } finally {
       setTransferring(false);

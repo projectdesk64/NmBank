@@ -103,8 +103,27 @@ export const Dashboard = () => {
     return user.accounts.find(a => ['savings', 'checking', 'current'].includes(a.type.toLowerCase())) || user.accounts[0] || null;
   }, [user.accounts]);
 
+  // Calculate live balance from transaction history
+  const liveBalance = useMemo(() => {
+    // Sort Oldest -> Newest to simulate history (optional, but good for accuracy)
+    const sorted = [...user.transactions].sort((a, b) =>
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    // Replay transactions to get final sum
+    return sorted.reduce((acc, t) => {
+      const amount = typeof t.amount === 'string' ? parseFloat(t.amount) : t.amount;
+      return t.type === 'credit' ? acc + amount : acc - amount;
+    }, 0);
+  }, [user.transactions]);
+
+  const formatIndianRuble = (amount: number) => {
+    // Format using Indian locale for the commas, then append the Ruble symbol
+    return amount.toLocaleString('en-IN') + ' ₽';
+  };
+
   // Calculate totals from context data
-  const mockTotalBalance = "27,01,32,00,000 ₽";
+  const mockTotalBalance = formatIndianRuble(liveBalance);
 
   // Active loans count (available for future use)
   // const mockActiveLoans = useMemo(() => {
@@ -263,7 +282,7 @@ export const Dashboard = () => {
         id: acc.id,
         type: type,
         accountNumber: acc.accountNo,
-        balance: type === 'savings' ? "27,01,32,00,000 ₽" : acc.balance,
+        balance: type === 'savings' ? formatIndianRuble(liveBalance) : acc.balance,
         currency: acc.currency,
         iban: acc.iban,
         nickname: acc.nickname,
@@ -339,33 +358,34 @@ export const Dashboard = () => {
         />
 
         {/* My Accounts Tabs */}
-        {accounts.length > 0 && (
-          <div className="mb-6">
-            <AccountsTabs
-              accounts={accounts}
-              showBalance={showBalance}
-              onToggleBalance={() => setShowBalance(!showBalance)}
-              loading={loading}
-              sendMoneyAccounts={sendMoneyAccounts}
-              savingsAccountNumber={accountDetails?.accountNumber}
-              onTransfer={handleTransfer}
-              onManageFDs={() => setIsFDModalOpen(true)}
-              onViewDetails={(accountType) => {
-                if (accountType === 'fd') {
-                  navigate('/dashboard/fixed-deposits');
-                } else if (accountType === 'savings' || accountType === 'current') {
-                  // Show savings account details
-                  if (accountDetails) {
-                    toast({
-                      title: `${accountType === 'current' ? 'Current' : 'Savings'} Account Details`,
-                      description: `Account: ${accountDetails.accountNumber} | IFSC: ${accountDetails.ifsc} | Branch: ${accountDetails.branch}`,
-                    });
-                  }
+        <div className="mb-6">
+
+
+          <AccountsTabs
+            accounts={accounts}
+            showBalance={showBalance}
+            onToggleBalance={() => setShowBalance(!showBalance)}
+            loading={loading}
+            sendMoneyAccounts={sendMoneyAccounts}
+            savingsAccountNumber={accountDetails?.accountNumber}
+            onTransfer={handleTransfer}
+            onManageFDs={() => setIsFDModalOpen(true)}
+            onViewDetails={(accountType) => {
+              if (accountType === 'fd') {
+                navigate('/dashboard/fixed-deposits');
+              } else if (accountType === 'savings' || accountType === 'current') {
+                // Show savings account details
+                if (accountDetails) {
+                  toast({
+                    title: `${accountType === 'current' ? 'Current' : 'Savings'} Account Details`,
+                    description: `Account: ${accountDetails.accountNumber} | IFSC: ${accountDetails.ifsc} | Branch: ${accountDetails.branch}`,
+                  });
                 }
-              }}
-            />
-          </div>
-        )}
+              }
+            }}
+          />
+        </div>
+
 
         {/* Bills & Recharge */}
         <div className="mb-6">

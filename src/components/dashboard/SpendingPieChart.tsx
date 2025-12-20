@@ -17,12 +17,12 @@ interface SpendingPieChartProps {
 
 // Default spending categories with colors (values in Russian Rubles)
 const defaultSpendingData: SpendingData[] = [
-  { name: 'Food & Dining', value: 1125000, color: '#DC8924' }, // nmb-orange
-  { name: 'Shopping', value: 738000, color: '#8A1200' }, // nmb-maroon
-  { name: 'Transportation', value: 504000, color: '#1E39C6' }, // nmb-blue
-  { name: 'Bills & Utilities', value: 405000, color: '#8B5CF6' }, // purple
-  { name: 'Entertainment', value: 288000, color: '#EC4899' }, // pink
-  { name: 'Others', value: 252000, color: '#64748B' }, // gray
+  { name: 'Food & Dining', value: 0, color: '#DC8924' }, // nmb-orange
+  { name: 'Shopping', value: 0, color: '#8A1200' }, // nmb-maroon
+  { name: 'Transportation', value: 0, color: '#1E39C6' }, // nmb-blue
+  { name: 'Bills & Utilities', value: 0, color: '#8B5CF6' }, // purple
+  { name: 'Entertainment', value: 0, color: '#EC4899' }, // pink
+  { name: 'Others', value: 0, color: '#64748B' }, // gray
 ];
 
 interface CustomTooltipProps {
@@ -35,7 +35,7 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     const data = payload[0];
     const total = payload.reduce((sum: number, entry: any) => sum + entry.value, 0);
     const percentage = ((data.value / total) * 100).toFixed(1);
-    
+
     return (
       <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
         <p className="font-semibold text-nmb-charcoal">{data.name}</p>
@@ -49,14 +49,18 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   return null;
 };
 
-export const SpendingPieChart = ({ 
+export const SpendingPieChart = ({
   data = defaultSpendingData,
-  className 
+  className
 }: SpendingPieChartProps) => {
   const { t, language } = useLanguage();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const totalSpending = data.reduce((sum, item) => sum + item.value, 0);
+
+  // Handle zero state
+  const isZeroState = totalSpending === 0;
+  const chartData = isZeroState ? [{ name: 'No Spending', value: 1, color: '#F3F4F6' }] : data;
 
   const handleMouseEnter = (_: any, index: number) => {
     setActiveIndex(index);
@@ -74,7 +78,12 @@ export const SpendingPieChart = ({
   };
 
   return (
-    <div className={cn("bg-white rounded-2xl p-6 border border-nmb-mist shadow-large hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300", className)}>
+    <div className={cn(
+      "bg-white rounded-2xl p-6 border border-nmb-mist shadow-large transition-all duration-300",
+      !isZeroState && "hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)]",
+      isZeroState && "opacity-60 select-none",
+      className
+    )}>
       <div className="mb-5">
         <h3 className="text-lg font-heading font-semibold text-nmb-charcoal mb-1">
           {t.dashboard.spendingOverview.title}
@@ -97,7 +106,7 @@ export const SpendingPieChart = ({
         <ResponsiveContainer width="100%" height={220}>
           <PieChart>
             <Pie
-              data={data}
+              data={chartData}
               cx="50%"
               cy="50%"
               labelLine={false}
@@ -110,22 +119,22 @@ export const SpendingPieChart = ({
               onClick={handleClick}
               animationBegin={0}
               animationDuration={600}
-              paddingAngle={2}
+              paddingAngle={isZeroState ? 0 : 2}
             >
-              {data.map((entry, index) => {
+              {chartData.map((entry, index) => {
                 const isActive = activeIndex === index || selectedIndex === index;
                 return (
                   <Cell
                     key={`cell-${index}`}
                     fill={entry.color}
-                    stroke={isActive ? entry.color : '#fff'}
-                    strokeWidth={isActive ? 4 : 2}
+                    stroke={isActive && !isZeroState ? entry.color : '#fff'}
+                    strokeWidth={isActive && !isZeroState ? 4 : 2}
                     opacity={activeIndex !== null && activeIndex !== index && selectedIndex !== index ? 0.5 : 1}
                     style={{
-                      filter: isActive ? 'brightness(1.15) drop-shadow(0 4px 8px rgba(0,0,0,0.2))' : 'none',
+                      filter: isActive && !isZeroState ? 'brightness(1.15) drop-shadow(0 4px 8px rgba(0,0,0,0.2))' : 'none',
                       transition: 'all 0.3s ease',
-                      cursor: 'pointer',
-                      transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                      cursor: isZeroState ? 'default' : 'pointer',
+                      transform: isActive && !isZeroState ? 'scale(1.05)' : 'scale(1)',
                       transformOrigin: 'center',
                     }}
                   />
@@ -137,18 +146,18 @@ export const SpendingPieChart = ({
         </ResponsiveContainer>
       </div>
 
-      {/* Legend */}
-      <div className="space-y-1.5">
+      {/* Legend - Hide on zero state to reduce clutter or keep simple */}
+      <div className={cn("space-y-1.5", isZeroState && "opacity-50 pointer-events-none")}>
         {data.map((item, index) => {
-          const percentage = ((item.value / totalSpending) * 100).toFixed(1);
+          const percentage = totalSpending > 0 ? ((item.value / totalSpending) * 100).toFixed(1) : '0.0';
           const isActive = activeIndex === index || selectedIndex === index;
           return (
             <div
               key={item.name}
               className={cn(
                 "flex items-center justify-between p-2.5 rounded-lg transition-all duration-200 cursor-pointer",
-                isActive 
-                  ? "bg-gray-50 border border-gray-200" 
+                isActive
+                  ? "bg-gray-50 border border-gray-200"
                   : "hover:bg-gray-50/50"
               )}
               onMouseEnter={() => handleMouseEnter(null, index)}

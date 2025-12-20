@@ -17,82 +17,175 @@ export const spendingStats: MonthlySpending = {
 
 // --- 2. Centralized Transactions (Mix of High Value & Daily Use) ---
 export const transactions: Transaction[] = [
-  // Big Ticket Items (New)
+  // --- 2025 Future Transactions ---
   {
-    id: 't1',
+    id: 't_dec_2025',
+    date: '2025-12-21',
+    description: 'Annual Maintenance Fee',
+    amount: 1000,
     type: 'debit',
-    amount: 500000,
-    description: 'Luxury Car Payment',
-    date: '2024-03-15',
-    category: 'Transport',
-    status: 'completed',
-    accountName: 'Main Savings',
-    accountId: 'acc1'
+    category: 'Bank Fees',
+    status: 'completed'
   },
   {
-    id: 't2',
+    id: 't_jun_24_2025',
+    date: '2025-06-24',
+    description: 'Debit Card Charges',
+    amount: 150,
+    type: 'debit',
+    category: 'Bank Fees',
+    status: 'completed'
+  },
+  {
+    id: 't_jun_01_2025',
+    date: '2025-06-01',
+    description: 'Bank Maintenance Fee',
+    amount: 0,
+    type: 'debit',
+    category: 'Bank Fees',
+    status: 'completed'
+  },
+  {
+    id: 't_may_01_2025',
+    date: '2025-05-01',
+    description: 'Fixed Deposit',
+    amount: 13506600000, // +13.5 Billion
     type: 'credit',
-    amount: 15000000, // 15 Million Dividend
-    description: 'Dividend Payout - Q1',
-    date: '2024-03-10',
-    category: 'Income',
-    status: 'completed',
-    accountName: 'Main Savings',
-    accountId: 'acc1'
+    category: 'Investment',
+    status: 'completed'
   },
   {
-    id: 't3',
+    id: 't_apr_28_2025',
+    date: '2025-04-28',
+    description: 'Fixed Deposit Fee',
+    amount: 0,
     type: 'debit',
-    amount: 125000,
-    description: 'Fine Dining Moscow',
-    date: '2024-03-08',
-    category: 'Food',
-    status: 'completed',
-    accountName: 'Main Savings',
-    accountId: 'acc1'
+    category: 'Bank Fees',
+    status: 'completed'
   },
-  // Daily Expenses (Adapted)
+
+  // --- Annual Maintenance Fees (2024 - 2018) ---
   {
-    id: 'txn-002',
-    description: 'Premium Streaming Sub',
-    amount: 1499.00,
+    id: 't_dec_2024',
+    date: '2024-12-31',
+    description: 'Annual Maintenance Fee',
+    amount: 1000,
     type: 'debit',
-    date: '2024-12-03T00:00:00.000Z',
-    category: 'Entertainment',
-    cardId: 'card-001',
-    status: 'success',
+    category: 'Bank Fees',
+    status: 'completed'
   },
   {
-    id: 'txn-004',
-    description: 'Azbuka Vkusa Grocery', // Premium Supermarket
-    amount: 25000.00, // Increased for realism
+    id: 't_dec_2023',
+    date: '2023-12-31',
+    description: 'Annual Maintenance Fee',
+    amount: 1000,
     type: 'debit',
-    date: '2024-12-07T00:00:00.000Z',
-    category: 'Shopping',
-    cardId: 'card-002',
-    status: 'success',
+    category: 'Bank Fees',
+    status: 'completed'
   },
   {
-    id: 'txn-006',
-    description: 'Fixed Deposit Interest',
-    amount: 295000.00, // Adjusted interest for big FDs
+    id: 't_dec_2022',
+    date: '2022-12-31',
+    description: 'Annual Maintenance Fee',
+    amount: 1000,
+    type: 'debit',
+    category: 'Bank Fees',
+    status: 'completed'
+  },
+  {
+    id: 't_dec_2021',
+    date: '2021-12-31',
+    description: 'Annual Maintenance Fee',
+    amount: 1000,
+    type: 'debit',
+    category: 'Bank Fees',
+    status: 'completed'
+  },
+  {
+    id: 't_dec_2020',
+    date: '2020-12-31',
+    description: 'Annual Maintenance Fee',
+    amount: 1000,
+    type: 'debit',
+    category: 'Bank Fees',
+    status: 'completed'
+  },
+  {
+    id: 't_dec_2019',
+    date: '2019-12-31',
+    description: 'Annual Maintenance Fee',
+    amount: 1000,
+    type: 'debit',
+    category: 'Bank Fees',
+    status: 'completed'
+  },
+  {
+    id: 't_dec_2018',
+    date: '2018-12-31',
+    description: 'Annual Maintenance Fee',
+    amount: 1000,
+    type: 'debit',
+    category: 'Bank Fees',
+    status: 'completed'
+  },
+
+  // --- 2018 Activity ---
+  {
+    id: 't_jan_12_2018',
+    date: '2018-01-12',
+    description: 'Bank Fees',
+    amount: 0,
+    type: 'debit',
+    category: 'Bank Fees',
+    status: 'completed'
+  },
+  {
+    id: 't_jan_10_2018',
+    date: '2018-01-10',
+    description: 'Fixed Deposit',
+    amount: 13506580020, // Specific amount from client
     type: 'credit',
-    date: '2024-12-01T00:00:00.000Z',
-    category: 'Interest',
-    accountId: 'acc1',
-    status: 'success',
+    category: 'Investment',
+    status: 'completed'
+  },
+
+  // --- 2017 Setup Activity ---
+  {
+    id: 't_dec_2017',
+    date: '2017-12-31',
+    description: 'Annual Maintenance Fee',
+    amount: 1000,
+    type: 'debit',
+    category: 'Bank Fees',
+    status: 'completed'
   },
   {
-    id: 'txn-010',
-    description: 'Estate Electricity Bill',
-    amount: 35000.00, // Larger bill for larger home
+    id: 't_jul_19_2017',
+    date: '2017-07-19',
+    description: 'Bank Fees',
+    amount: 20,
     type: 'debit',
-    date: '2024-12-12T00:00:00.000Z',
-    category: 'Utilities',
-    accountId: 'acc1',
-    status: 'success',
-    merchant: 'Moscow Energy',
+    category: 'Bank Fees',
+    status: 'completed'
   },
+  {
+    id: 't_jul_12_2017_2',
+    date: '2017-07-12',
+    description: 'Deposit',
+    amount: 20000,
+    type: 'credit',
+    category: 'Deposit',
+    status: 'completed'
+  },
+  {
+    id: 't_jul_12_2017_1',
+    date: '2017-07-12',
+    description: 'Cheque #123',
+    amount: 0,
+    type: 'credit',
+    category: 'Cheque',
+    status: 'completed'
+  }
 ];
 
 // --- 3. The Main User Object (Shravan Banerjee) ---

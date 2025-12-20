@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -10,7 +11,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ArrowUpRight, ArrowDownLeft, ChevronLeft, ChevronRight, Filter, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const formatDate = (dateString: string | Date, language: 'en' | 'ru'): string => {
@@ -33,8 +42,21 @@ const formatDate = (dateString: string | Date, language: 'en' | 'ru'): string =>
 
 export const TransactionsPage = () => {
   const { language } = useLanguage();
-
   const { user } = useUser();
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Filter State
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, typeFilter, dateFilter]);
 
   // Sort transactions by date (descending)
   const sortedTransactions = [...user.transactions].sort((a, b) => {
@@ -42,6 +64,60 @@ export const TransactionsPage = () => {
     const dateB = new Date(b.date).getTime();
     return dateB - dateA;
   });
+
+  // Filter Logic
+  const filteredTransactions = sortedTransactions.filter(tx => {
+    // 1. Status Filter
+    if (statusFilter !== 'all' && (tx.status || 'success') !== statusFilter) return false;
+
+    // 2. Type Filter
+    if (typeFilter !== 'all' && tx.type !== typeFilter) return false;
+
+    // 3. Date Filter
+    if (dateFilter !== 'all') {
+      const txDate = new Date(tx.date);
+      const now = new Date();
+
+      if (dateFilter === 'last30') {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(now.getDate() - 30);
+        if (txDate < thirtyDaysAgo) return false;
+      } else if (dateFilter === 'last90') {
+        const ninetyDaysAgo = new Date();
+        ninetyDaysAgo.setDate(now.getDate() - 90);
+        if (txDate < ninetyDaysAgo) return false;
+      } else if (dateFilter === 'thisYear') {
+        if (txDate.getFullYear() !== now.getFullYear()) return false;
+      } else if (dateFilter === 'lastYear') {
+        if (txDate.getFullYear() !== now.getFullYear() - 1) return false;
+      } else if (dateFilter === '2025') {
+        if (txDate.getFullYear() !== 2025) return false;
+      } else if (dateFilter === 'older') {
+        if (txDate.getFullYear() >= 2024) return false;
+      }
+    }
+
+    return true;
+  });
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentTransactions = filteredTransactions.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setTypeFilter('all');
+    setDateFilter('all');
+  };
+
+  const hasActiveFilters = statusFilter !== 'all' || typeFilter !== 'all' || dateFilter !== 'all';
 
   return (
     <DashboardLayout>
@@ -56,86 +132,193 @@ export const TransactionsPage = () => {
           </p>
         </div>
 
+        {/* Filters */}
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+            <div className="w-full md:w-48">
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Transaction Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="credit">Credit (Deposit)</SelectItem>
+                  <SelectItem value="debit">Debit (Withdrawal)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="w-full md:w-48">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="success">Success</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="w-full md:w-48">
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Date Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="last30">Last 30 Days</SelectItem>
+                  <SelectItem value="last90">Last 90 Days</SelectItem>
+                  <SelectItem value="thisYear">This Year (2025)</SelectItem>
+                  <SelectItem value="lastYear">Last Year (2024)</SelectItem>
+                  <SelectItem value="older">Older</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              onClick={clearFilters}
+              className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Clear Filters
+            </Button>
+          )}
+        </div>
+
         {/* Transactions Table */}
         <div className="bg-white rounded-2xl shadow-large overflow-hidden">
-          {sortedTransactions.length === 0 ? (
+          {filteredTransactions.length === 0 ? (
             <div className="text-center py-16">
-              <p className="text-gray-600 mb-4">No transactions found</p>
-              <p className="text-sm text-gray-500">
-                Your transaction history will appear here once you make your first transaction.
-              </p>
+              <Filter className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">No transactions match your filters</p>
+              <Button variant="link" onClick={clearFilters} className="text-nmb-maroon">
+                Clear all filters
+              </Button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead className="font-semibold text-nmb-charcoal">Date & Time</TableHead>
-                    <TableHead className="font-semibold text-nmb-charcoal">Description</TableHead>
-                    <TableHead className="font-semibold text-nmb-charcoal">Category</TableHead>
-                    <TableHead className="font-semibold text-nmb-charcoal">Type</TableHead>
-                    <TableHead className="font-semibold text-nmb-charcoal text-right">Amount</TableHead>
-                    <TableHead className="font-semibold text-nmb-charcoal">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedTransactions.map((transaction) => (
-                    <TableRow
-                      key={transaction.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <TableCell className="font-medium text-gray-700">
-                        {formatDate(transaction.date, language)}
-                      </TableCell>
-                      <TableCell className="font-medium text-nmb-charcoal">
-                        {transaction.description}
-                      </TableCell>
-                      <TableCell>
-                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
-                          {transaction.category || 'Other'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {transaction.type === 'credit' ? (
-                            <ArrowDownLeft className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <ArrowUpRight className="h-4 w-4 text-red-600" />
-                          )}
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="font-semibold text-nmb-charcoal">Date & Time</TableHead>
+                      <TableHead className="font-semibold text-nmb-charcoal">Description</TableHead>
+                      <TableHead className="font-semibold text-nmb-charcoal">Category</TableHead>
+                      <TableHead className="font-semibold text-nmb-charcoal">Type</TableHead>
+                      <TableHead className="font-semibold text-nmb-charcoal text-right">Amount</TableHead>
+                      <TableHead className="font-semibold text-nmb-charcoal">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentTransactions.map((transaction) => (
+                      <TableRow
+                        key={transaction.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <TableCell className="font-medium text-gray-700">
+                          {formatDate(transaction.date, language)}
+                        </TableCell>
+                        <TableCell className="font-medium text-nmb-charcoal">
+                          {transaction.description}
+                        </TableCell>
+                        <TableCell>
+                          <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
+                            {transaction.category || 'Other'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {transaction.type === 'credit' ? (
+                              <ArrowDownLeft className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <ArrowUpRight className="h-4 w-4 text-red-600" />
+                            )}
+                            <span className={cn(
+                              "text-sm font-medium capitalize",
+                              transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
+                            )}>
+                              {transaction.type}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
                           <span className={cn(
-                            "text-sm font-medium capitalize",
+                            "text-lg font-bold font-mono tabular-nums",
                             transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
                           )}>
-                            {transaction.type}
+                            {transaction.type === 'credit' ? '+' : '-'}
+                            {formatCurrency(Math.abs(transaction.amount))}
                           </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <span className={cn(
-                          "text-lg font-bold font-mono tabular-nums",
-                          transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                        )}>
-                          {transaction.type === 'credit' ? '+' : '-'}
-                          {formatCurrency(Math.abs(transaction.amount))}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className={cn(
-                          "px-2 py-1 text-xs font-medium rounded-full",
-                          transaction.status === 'success'
-                            ? 'bg-green-100 text-green-700'
-                            : transaction.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-red-100 text-red-700'
-                        )}>
-                          {transaction.status || 'success'}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={cn(
+                            "px-2 py-1 text-xs font-medium rounded-full",
+                            transaction.status === 'success' || transaction.status === 'completed'
+                              ? 'bg-green-100 text-green-700'
+                              : transaction.status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-red-100 text-red-700'
+                          )}>
+                            {transaction.status || 'success'}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+                  <div className="text-sm text-gray-500">
+                    Showing <span className="font-medium">{startIndex + 1}</span> to <span className="font-medium">{Math.min(endIndex, filteredTransactions.length)}</span> of <span className="font-medium">{filteredTransactions.length}</span> results
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(page)}
+                        className={cn(
+                          "h-8 w-8 p-0",
+                          currentPage === page ? "bg-nmb-maroon hover:bg-nmb-maroon/90" : ""
+                        )}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -172,4 +355,3 @@ export const TransactionsPage = () => {
     </DashboardLayout>
   );
 };
-

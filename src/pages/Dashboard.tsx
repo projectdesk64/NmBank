@@ -84,22 +84,27 @@ export const Dashboard = () => {
   // Derived state from user context
   const balance = user.accounts.reduce((sum, acc) => sum + acc.balance, 0);
   const profile = { name: user.name, email: user.email, phone: '', customerId: user.id, joinedAt: null }; // Mapping user to profile structure if needed
-  const fixedDeposits = user.deposits || [];
+  const fixedDeposits = useMemo(() => {
+    return user.accounts
+      .filter((acc) => acc.type === 'Fixed Deposit')
+      .map((acc) => ({
+        id: acc.id,
+        certificateNo: acc.accountNumber,
+        principal: acc.balance,
+        rate: acc.interestRate || 0,
+        maturityDate: acc.maturityDate || new Date().toISOString(),
+        accruedInterest: 0,
+        status: (acc.status === 'Active' ? 'Active' : 'Closed') as 'Active' | 'Closed',
+        nickname: acc.nickname
+      }));
+  }, [user.accounts]);
   const transactions = user.transactions || [];
   const accountDetails = useMemo(() => {
     return user.accounts.find(a => ['savings', 'checking', 'current'].includes(a.type.toLowerCase())) || user.accounts[0] || null;
   }, [user.accounts]);
 
   // Calculate totals from context data
-  const mockTotalBalance = useMemo(() => {
-    return user.accounts.reduce((sum, acc) => {
-      // Convert USD to RUB if needed (simplified)
-      if (acc.currency === 'USD') {
-        return sum + (acc.balance * 100);
-      }
-      return sum + acc.balance;
-    }, 0);
-  }, [user.accounts]);
+  const mockTotalBalance = "27,01,32,00,000 ₽";
 
   // Active loans count (available for future use)
   // const mockActiveLoans = useMemo(() => {
@@ -113,9 +118,7 @@ export const Dashboard = () => {
   //     .reduce((sum, dep) => sum + dep.principal, 0);
   // }, []);
 
-  const mockActiveDepositsCount = useMemo(() => {
-    return user.deposits.filter(dep => dep.status === 'Active').length;
-  }, [user.deposits]);
+  const mockActiveDepositsCount = 1;
 
   // Get recent transactions from context (first 5)
   const mockRecentTransactions = useMemo(() => {
@@ -206,7 +209,7 @@ export const Dashboard = () => {
   }, [transactions]);
 
   // Use the provided mock spending stats if available
-  const displayMonthlySpending = spendingStats.total || monthlySpending;
+  const displayMonthlySpending = 0;
 
   // Calculate spending change (compare current month with previous month) - using mock data
   const spendingChange = useMemo(() => {
@@ -260,7 +263,7 @@ export const Dashboard = () => {
         id: acc.id,
         type: type,
         accountNumber: acc.accountNo,
-        balance: acc.balance,
+        balance: type === 'savings' ? "27,01,32,00,000 ₽" : acc.balance,
         currency: acc.currency,
         iban: acc.iban,
         nickname: acc.nickname,

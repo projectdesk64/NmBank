@@ -398,6 +398,43 @@ export interface Translations {
       logout: string;
       editProfile: string;
     };
+    customerProfilePage: {
+      title: string;
+      subtitle: string;
+      tabs: {
+        personal: string;
+        account: string;
+      };
+      accountDetails: {
+        accountHolder: string;
+        status: string;
+        active: string;
+        accountNickname: string;
+        authorizedSigner: string;
+        accountNo: string;
+        dateOfOpening: string;
+        categoryCode: string;
+        categoryDescription: string;
+        accountType: string;
+        branchName: string;
+        branchAddress: string;
+      };
+      personalDetails: {
+        fullName: string;
+        customerId: string;
+        dob: string;
+        mobile: string;
+        email: string;
+        ckycNo: string;
+        kycStatus: string;
+        nextDue: string;
+        communicationAddress: string;
+        permanentAddress: string;
+        protectedTitle: string;
+        protectedMessage: string;
+        verifyIdentity: string;
+      };
+    };
   };
 }
 
@@ -800,6 +837,43 @@ export const translations: Record<Language, Translations> = {
         logout: 'Logout',
         editProfile: 'Edit Profile',
       },
+      customerProfilePage: {
+        title: 'Customer Profile',
+        subtitle: 'Manage customer details and account information.',
+        tabs: {
+          personal: 'Personal Details',
+          account: 'A/C Details',
+        },
+        accountDetails: {
+          accountHolder: 'Account Holder',
+          status: 'Status',
+          active: 'Active',
+          accountNickname: 'Account Nickname',
+          authorizedSigner: 'Authorized Signer / Third Party Access',
+          accountNo: 'Account No',
+          dateOfOpening: 'Date of Account Opening',
+          categoryCode: 'Category Code',
+          categoryDescription: 'Category Description',
+          accountType: 'Account Type',
+          branchName: 'Branch Name',
+          branchAddress: 'Branch Address',
+        },
+        personalDetails: {
+          fullName: 'Full Name',
+          customerId: 'Customer ID',
+          dob: 'Date of Birth',
+          mobile: 'Mobile No',
+          email: 'Email ID',
+          ckycNo: 'CKYC No',
+          kycStatus: 'KYC Status',
+          nextDue: 'Next due on',
+          communicationAddress: 'Communication Address',
+          permanentAddress: 'Permanent Address',
+          protectedTitle: 'Personal Details Protected',
+          protectedMessage: 'Please verify customer identity before viewing sensitive personal information.',
+          verifyIdentity: 'Verify Identity',
+        },
+      },
     },
   },
   ru: {
@@ -1199,6 +1273,43 @@ export const translations: Record<Language, Translations> = {
         email: 'Email',
         logout: 'Выйти',
         editProfile: 'Редактировать профиль',
+      },
+      customerProfilePage: {
+        title: 'Профиль клиента',
+        subtitle: 'Управление данными клиента и информацией о счете.',
+        tabs: {
+          personal: 'Личные данные',
+          account: 'Детали счета',
+        },
+        accountDetails: {
+          accountHolder: 'Владелец счета',
+          status: 'Статус',
+          active: 'Активен',
+          accountNickname: 'Псевдоним счета',
+          authorizedSigner: 'Уполномоченный подписант / Доступ третьих лиц',
+          accountNo: 'Номер счета',
+          dateOfOpening: 'Дата открытия счета',
+          categoryCode: 'Код категории',
+          categoryDescription: 'Описание категории',
+          accountType: 'Тип счета',
+          branchName: 'Название филиала',
+          branchAddress: 'Адрес филиала',
+        },
+        personalDetails: {
+          fullName: 'Полное имя',
+          customerId: 'ID клиента',
+          dob: 'Дата рождения',
+          mobile: 'Мобильный',
+          email: 'Email',
+          ckycNo: 'CKYC No',
+          kycStatus: 'Статус KYC',
+          nextDue: 'Следующее обновление',
+          communicationAddress: 'Адрес для корреспонденции',
+          permanentAddress: 'Постоянный адрес',
+          protectedTitle: 'Личные данные защищены',
+          protectedMessage: 'Пожалуйста, подтвердите личность клиента перед просмотром конфиденциальной информации.',
+          verifyIdentity: 'Подтвердить личность',
+        },
       },
     },
   },

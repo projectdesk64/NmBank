@@ -1,5 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, Headphones, Bell, ArrowRight, Phone, Mail } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import {
+  Search, Headphones, Bell, ArrowRight, Phone, Mail, User, CreditCard,
+  LayoutDashboard, Send, PiggyBank, Banknote, History
+} from 'lucide-react';
 import { onAuthStateChanged, User as FirebaseUser, signOut } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -12,18 +15,6 @@ import { UserAvatar } from '@/components/ui/UserAvatar';
 import { CustomerDetailsModal } from '@/components/dashboard/CustomerDetailsModal';
 import { useLanguage } from '@/hooks/useLanguage';
 
-interface NavItem {
-  label: string;
-  icon: React.ElementType;
-  path: string;
-}
-
-interface SearchableFeature {
-  title: string;
-  slug: string;
-  category: string;
-}
-
 interface Profile {
   name?: string;
   email?: string;
@@ -31,30 +22,45 @@ interface Profile {
   customerId?: string;
 }
 
-const titleToSlug = (title: string): string => {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-};
+// --- Master Search Index ---
+const SEARCH_INDEX = [
+  // --- Special Client Demo Items ---
+  {
+    id: 'prof1',
+    title: 'Customer Profile',
+    subtitle: 'Auth Signer: Thynana Gopi Priyanka | ID: NMB-78229100',
+    path: '/profile',
+    icon: 'User',
+    keywords: ['customer', 'profile', 'shravan', 'details', 'kyc']
+  },
+  {
+    id: 'acc1',
+    title: 'Account Details',
+    subtitle: 'Main Savings | ...4729 | Bal: 27B ₽',
+    path: '/profile',
+    icon: 'CreditCard',
+    keywords: ['account', 'savings', 'balance', 'details']
+  },
 
-const navItems: NavItem[] = [];
-
-const searchableFeatures: SearchableFeature[] = [
-  { title: 'Open Fixed Deposit', slug: 'fixed-deposit', category: 'Investments' },
-  { title: 'Download Statement', slug: 'download-statement', category: 'Accounts' },
-  { title: 'Personal Loan', slug: 'personal-loan', category: 'Loans' },
-  { title: 'Pay Electricity Bill', slug: 'pay-electricity-bill', category: 'Payments' },
-  { title: 'Apply for Loan', slug: 'apply-for-loan', category: 'Loans' },
-  { title: 'View Account Details', slug: 'view-account-details', category: 'Accounts' },
-  { title: 'Card Transaction History', slug: 'card-transaction-history', category: 'Cards' },
-  { title: 'Loan Repayment', slug: 'loan-repayment', category: 'Loans' },
-  { title: 'Investment Portfolio', slug: 'investment-portfolio', category: 'Investments' },
-  { title: 'Insurance Policies', slug: 'insurance-policies', category: 'Insurance' },
-  { title: 'Transaction History', slug: 'transaction-history', category: 'Transactions' },
-  { title: 'Send Money', slug: 'send-money', category: 'Payments' },
-  { title: 'Set Card Limits', slug: 'set-card-limits', category: 'Cards' },
+  // --- Standard App Pages ---
+  { id: 'p1', title: 'Dashboard', path: '/', icon: 'LayoutDashboard', keywords: ['home', 'main'] },
+  { id: 'p2', title: 'Send Money', path: '/transfer', icon: 'Send', keywords: ['transfer', 'pay', 'send'] },
+  { id: 'p3', title: 'My Cards', path: '/cards', icon: 'CreditCard', keywords: ['debit', 'credit', 'cards'] },
+  { id: 'p4', title: 'Fixed Deposits', path: '/deposits', icon: 'PiggyBank', keywords: ['fd', 'investment', 'save'] },
+  { id: 'p5', title: 'Loans', path: '/loans', icon: 'Banknote', keywords: ['borrow', 'emi', 'loan'] },
+  { id: 'p6', title: 'Transaction History', path: '/dashboard/transactions', icon: 'History', keywords: ['history', 'statement', 'logs'] },
 ];
+
+const ICON_MAP: Record<string, any> = {
+  User,
+  CreditCard,
+  LayoutDashboard,
+  Send,
+  PiggyBank,
+  Banknote,
+  History,
+  Search
+};
 
 export const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const { t } = useLanguage();
@@ -73,7 +79,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      
+
       if (currentUser) {
         // Subscribe to user document
         const userRef = doc(db, 'users', currentUser.uid);
@@ -125,29 +131,24 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
     setSearchQuery(e.target.value);
   };
 
-  const handleSearchResultClick = (slug: string) => {
-    navigate(`/services/${slug}`);
+  const handleSearchResultClick = (path: string) => {
+    navigate(path);
     setSearchQuery('');
     setShowSearchDropdown(false);
   };
 
-  const filteredFeatures = searchableFeatures.filter((feature) =>
-    feature.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    feature.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Demo Suggestions Constant
+  const filteredFeatures = useMemo(() => {
+    if (!searchQuery.trim()) return [];
 
-  const highlightMatch = (text: string, query: string) => {
-    if (!query) return text;
-    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
-    return parts.map((part, index) =>
-      part.toLowerCase() === query.toLowerCase() ? (
-        <span key={index} className="text-nmb-maroon font-semibold">{part}</span>
-      ) : (
-        part
-      )
-    );
-  };
+    const lowerQuery = searchQuery.toLowerCase();
+    return SEARCH_INDEX.filter(item => {
+      const matchTitle = item.title.toLowerCase().includes(lowerQuery);
+      const matchSubtitle = item.subtitle ? item.subtitle.toLowerCase().includes(lowerQuery) : false;
+      const matchKeywords = item.keywords.some(k => k.toLowerCase().includes(lowerQuery));
+      return matchTitle || matchSubtitle || matchKeywords;
+    });
+  }, [searchQuery]);
 
   const handleLogout = async () => {
     try {
@@ -169,16 +170,16 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
         <div className="max-w-[1400px] mx-auto px-6 lg:px-10 flex items-center justify-between w-full">
           {/* Left: Phone + Email with icons, separated by vertical line */}
           <div className="flex items-center gap-4">
-            <a 
-              href="tel:+74957969355" 
+            <a
+              href="tel:+74957969355"
               className="flex items-center gap-2 hover:text-white/80 transition-colors"
             >
               <Phone className="h-3.5 w-3.5" />
               <span>+7 (495) 796-93-55</span>
             </a>
             <div className="h-4 w-px bg-white/30"></div>
-            <a 
-              href="mailto:info@nmbank.ru" 
+            <a
+              href="mailto:info@nmbank.ru"
               className="flex items-center gap-2 hover:text-white/80 transition-colors"
             >
               <Mail className="h-3.5 w-3.5" />
@@ -213,34 +214,48 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
                 placeholder={t.dashboard.layout.searchPlaceholder}
                 className="w-full pl-12 pr-4 py-3 bg-white rounded-full text-gray-600 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-nmb-orange/50 transition-all text-sm"
                 aria-label="Search"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    if (filteredFeatures.length > 0) {
+                      handleSearchResultClick(filteredFeatures[0].path);
+                    }
+                  }
+                }}
               />
-              
+
               {/* Search Dropdown */}
               {showSearchDropdown && filteredFeatures.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-large border border-nmb-mist z-50 max-h-[400px] overflow-y-auto">
+                <div className="absolute top-full left-0 mt-2 w-full min-w-[500px] bg-white rounded-xl shadow-large border border-nmb-mist z-50 max-h-[400px] overflow-y-auto">
                   <div className="p-2">
-                    {filteredFeatures.map((feature, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSearchResultClick(feature.slug)}
-                        className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-nmb-smoke transition-colors text-left group"
-                        aria-label={`Search result: ${feature.title}`}
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900 group-hover:text-nmb-maroon transition-colors">
-                            {highlightMatch(feature.title, searchQuery)}
-                          </span>
-                          <span className="text-xs text-gray-500 mt-0.5">
-                            {highlightMatch(feature.category, searchQuery)}
-                          </span>
-                        </div>
-                        <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-nmb-maroon transition-colors" />
-                      </button>
-                    ))}
+                    {filteredFeatures.map((feature) => {
+                      const Icon = ICON_MAP[feature.icon] || Search;
+                      return (
+                        <button
+                          key={feature.id}
+                          onClick={() => handleSearchResultClick(feature.path)}
+                          className="w-full flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-nmb-smoke transition-colors text-left group"
+                          aria-label={`Search result: ${feature.title}`}
+                        >
+                          <div className="p-2 rounded-full bg-nmb-smoke group-hover:bg-white transition-colors text-nmb-charcoal">
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-nmb-charcoal group-hover:text-nmb-maroon transition-colors">
+                              {feature.title}
+                            </span>
+                            {feature.subtitle && (
+                              <span className="text-xs text-gray-400 font-medium">
+                                {feature.subtitle}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
-              
+
               {showSearchDropdown && searchQuery.length > 0 && filteredFeatures.length === 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-large border border-nmb-mist z-50 p-4">
                   <p className="text-sm text-gray-500 text-center">
@@ -253,13 +268,13 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
 
           {/* Right: Icons + Avatar */}
           <div className="flex items-center gap-3 sm:gap-4">
-            <button 
+            <button
               className="p-2 text-nmb-charcoal hover:bg-gray-100 rounded-full transition-colors"
               aria-label="Support"
             >
               <Headphones className="h-6 w-6" />
             </button>
-            <button 
+            <button
               className="relative p-2 text-nmb-charcoal hover:bg-gray-100 rounded-full transition-colors"
               aria-label="Notifications"
             >

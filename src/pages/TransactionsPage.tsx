@@ -1,10 +1,5 @@
-import { useState, useEffect } from 'react';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, collection, query, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { useUser } from '@/contexts/UserContext';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { useNavigate } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatCurrency } from '@/utils/formatters';
 import {
@@ -15,31 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowUpRight, ArrowDownLeft, Loader2 } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface Transaction {
-  id: string;
-  description: string;
-  amount: number;
-  type: string;
-  category: string;
-  date: Timestamp | Date | null;
-  status: string;
-  fromAccount?: string;
-  toAccount?: string;
-}
-
-type TimestampType = Timestamp | Date | string | null;
-
-const formatDate = (timestamp: TimestampType, language: 'en' | 'ru'): string => {
-  if (!timestamp) return 'N/A';
+const formatDate = (dateString: string | Date, language: 'en' | 'ru'): string => {
+  if (!dateString) return 'N/A';
   try {
-    const date = timestamp instanceof Timestamp 
-      ? timestamp.toDate() 
-      : timestamp instanceof Date 
-        ? timestamp 
-        : new Date(timestamp);
+    const date = new Date(dateString);
     const locale = language === 'ru' ? 'ru-RU' : 'en-IN';
     return new Intl.DateTimeFormat(locale, {
       day: 'numeric',
@@ -56,72 +33,15 @@ const formatDate = (timestamp: TimestampType, language: 'en' | 'ru'): string => 
 
 export const TransactionsPage = () => {
   const { language } = useLanguage();
-  const navigate = useNavigate();
-  const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  useEffect(() => {
-    let unsubscribeUser: (() => void) | null = null;
-    let unsubscribeTransactions: (() => void) | null = null;
+  const { user } = useUser();
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        navigate('/login');
-        return;
-      }
-      setUser(currentUser);
-      
-      // Subscribe to transactions subcollection (no limit - get all)
-      const userRef = doc(db, 'users', currentUser.uid);
-      const transactionsRef = collection(userRef, 'transactions');
-      const transactionsQuery = query(transactionsRef, orderBy('date', 'desc'));
-      
-      unsubscribeTransactions = onSnapshot(
-        transactionsQuery,
-        (snapshot) => {
-          const txs = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Transaction[];
-          setTransactions(txs);
-          setLoading(false);
-        },
-        (error) => {
-          if (import.meta.env.DEV) {
-            console.error('Error fetching transactions:', error);
-          }
-          setLoading(false);
-          toast({
-            title: "Transaction History Unavailable",
-            description: "We couldn't load your transaction history. Please try refreshing the page or contact support if the issue persists.",
-            variant: "destructive",
-          });
-        }
-      );
-    });
-
-    return () => {
-      unsubscribe();
-      if (unsubscribeUser) unsubscribeUser();
-      if (unsubscribeTransactions) unsubscribeTransactions();
-    };
-  }, [navigate]);
-
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-8">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="flex flex-col items-center gap-4">
-              <Loader2 className="h-8 w-8 animate-spin text-nmb-maroon" />
-              <p className="text-gray-600">Loading transactions...</p>
-            </div>
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
+  // Sort transactions by date (descending)
+  const sortedTransactions = [...user.transactions].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return dateB - dateA;
+  });
 
   return (
     <DashboardLayout>
@@ -138,7 +58,7 @@ export const TransactionsPage = () => {
 
         {/* Transactions Table */}
         <div className="bg-white rounded-2xl shadow-large overflow-hidden">
-          {transactions.length === 0 ? (
+          {sortedTransactions.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-gray-600 mb-4">No transactions found</p>
               <p className="text-sm text-gray-500">
@@ -159,8 +79,8 @@ export const TransactionsPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.map((transaction) => (
-                    <TableRow 
+                  {sortedTransactions.map((transaction) => (
+                    <TableRow
                       key={transaction.id}
                       className="hover:bg-gray-50 transition-colors"
                     >
@@ -202,11 +122,11 @@ export const TransactionsPage = () => {
                       <TableCell>
                         <span className={cn(
                           "px-2 py-1 text-xs font-medium rounded-full",
-                          transaction.status === 'success' 
-                            ? 'bg-green-100 text-green-700' 
+                          transaction.status === 'success'
+                            ? 'bg-green-100 text-green-700'
                             : transaction.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-red-100 text-red-700'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-red-100 text-red-700'
                         )}>
                           {transaction.status || 'success'}
                         </span>
@@ -220,17 +140,17 @@ export const TransactionsPage = () => {
         </div>
 
         {/* Summary Stats */}
-        {transactions.length > 0 && (
+        {sortedTransactions.length > 0 && (
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
               <p className="text-sm text-gray-600 mb-1">Total Transactions</p>
-              <p className="text-2xl font-bold text-nmb-charcoal">{transactions.length}</p>
+              <p className="text-2xl font-bold text-nmb-charcoal">{sortedTransactions.length}</p>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
               <p className="text-sm text-gray-600 mb-1">Total Credits</p>
               <p className="text-2xl font-bold text-green-600">
                 {formatCurrency(
-                  transactions
+                  sortedTransactions
                     .filter(tx => tx.type === 'credit')
                     .reduce((sum, tx) => sum + Math.abs(tx.amount), 0)
                 )}
@@ -240,7 +160,7 @@ export const TransactionsPage = () => {
               <p className="text-sm text-gray-600 mb-1">Total Debits</p>
               <p className="text-2xl font-bold text-red-600">
                 {formatCurrency(
-                  transactions
+                  sortedTransactions
                     .filter(tx => tx.type === 'debit')
                     .reduce((sum, tx) => sum + Math.abs(tx.amount), 0)
                 )}

@@ -3,13 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/useLanguage';
-import { currentUser, Account } from '@/data/mockData';
+import { useUser } from '@/contexts/UserContext';
+import { Account } from '@/types';
 import { Wallet, Inbox, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 
 export const Accounts = () => {
   const { language } = useLanguage();
-  const accounts = currentUser.accounts;
+  const { user } = useUser();
+  const accounts = user.accounts;
 
   // Get status badge variant
   const getStatusBadge = (status: Account['status']) => {

@@ -66,7 +66,7 @@ try {
     auth = getAuth(app);
     db = getFirestore(app);
     if (import.meta.env.DEV) {
-        console.log('✅ Firebase initialized successfully');
+
     }
 } catch (error) {
     if (import.meta.env.DEV) {

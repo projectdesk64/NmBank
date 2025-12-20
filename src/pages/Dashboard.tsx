@@ -1,10 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, onSnapshot, collection, query, orderBy, limit, Timestamp, runTransaction, arrayUnion, addDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
-import { performTransfer } from '@/lib/transactionService';
 import { HeroSection } from '@/components/dashboard/HeroSection';
 import { SummaryStats } from '@/components/dashboard/SummaryStats';
 import { AccountsTabs } from '@/components/dashboard/AccountsTabs';
@@ -16,51 +12,15 @@ import { AccountDetailsModal } from '@/components/dashboard/AccountDetailsModal'
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatCurrency } from '@/utils/formatters';
-import { currentUser as mockUser } from '@/data/mockData';
+import { spendingStats } from '@/data/mockData';
+import { useUser } from '@/contexts/UserContext';
 
-interface Profile {
-  name: string;
-  email: string;
-  phone: string;
-  customerId: string;
-  joinedAt: Timestamp | null;
-}
 
-interface AccountDetails {
-  accountNumber: string;
-  ifsc: string;
-  branch: string;
-  type: string;
-}
-
-interface FixedDeposit {
-  id: string;
-  principal: number;
-  interestRate: string;
-  maturityDate: string;
-  status: string;
-}
-
-interface Transaction {
-  id: string;
-  description: string;
-  amount: number;
-  type: string;
-  category: string;
-  date: Timestamp | Date | null;
-  status: string;
-}
-
-type TimestampType = Timestamp | Date | string | null;
-
-const formatDate = (timestamp: TimestampType, language: 'en' | 'ru'): string => {
-  if (!timestamp) return 'N/A';
+// Helper to handle date formatting safely
+const formatDate = (dateStr: string | null | undefined, language: 'en' | 'ru'): string => {
+  if (!dateStr) return 'N/A';
   try {
-    const date = timestamp instanceof Timestamp 
-      ? timestamp.toDate() 
-      : timestamp instanceof Date 
-        ? timestamp 
-        : new Date(timestamp);
+    const date = new Date(dateStr);
     const locale = language === 'ru' ? 'ru-RU' : 'en-IN';
     return new Intl.DateTimeFormat(locale, {
       day: 'numeric',
@@ -69,45 +29,16 @@ const formatDate = (timestamp: TimestampType, language: 'en' | 'ru'): string => 
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
-  } catch (error) {
+  } catch {
     return 'N/A';
   }
 };
 
-const formatTransactionDate = (timestamp: TimestampType, language: 'en' | 'ru'): string => {
-  if (!timestamp) return 'N/A';
-  try {
-    const date = timestamp instanceof Timestamp 
-      ? timestamp.toDate() 
-      : timestamp instanceof Date 
-        ? timestamp 
-        : new Date(timestamp);
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const transactionDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const locale = language === 'ru' ? 'ru-RU' : 'en-IN';
-    
-    if (transactionDate.getTime() === today.getTime()) {
-      const todayText = language === 'ru' ? 'Сегодня' : 'Today';
-      return `${todayText}, ${date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: language === 'en' })}`;
-    } else if (transactionDate.getTime() === yesterday.getTime()) {
-      const yesterdayText = language === 'ru' ? 'Вчера' : 'Yesterday';
-      return `${yesterdayText}, ${date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: language === 'en' })}`;
-    } else {
-      return new Intl.DateTimeFormat(locale, {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: language === 'en',
-      }).format(date);
-    }
-  } catch (error) {
-    return 'N/A';
-  }
+
+
+const formatTransactionDate = (dateStr: string | null | undefined, language: 'en' | 'ru'): string => {
+  if (!dateStr) return 'N/A';
+  return formatTransactionDateFromISO(dateStr, language);
 };
 
 // Format transaction date from ISO string (for mock data)
@@ -120,7 +51,7 @@ const formatTransactionDateFromISO = (dateString: string, language: 'en' | 'ru')
     yesterday.setDate(yesterday.getDate() - 1);
     const transactionDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const locale = language === 'ru' ? 'ru-RU' : 'en-IN';
-    
+
     if (transactionDate.getTime() === today.getTime()) {
       const todayText = language === 'ru' ? 'Сегодня' : 'Today';
       return `${todayText}, ${date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: language === 'en' })}`;
@@ -145,30 +76,30 @@ const formatTransactionDateFromISO = (dateString: string, language: 'en' | 'ru')
 export const Dashboard = () => {
   const { language } = useLanguage();
   const navigate = useNavigate();
-  const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [loading, setLoading] = useState(false); // Set to false since we're using mock data
+  const { user, transferMoney } = useUser();
+  const [loading] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
   const [isFDModalOpen, setIsFDModalOpen] = useState(false);
-  
-  // Data states (keeping for Firebase compatibility, but using mock data as primary)
-  const [balance, setBalance] = useState<number>(0);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [accountDetails, setAccountDetails] = useState<AccountDetails | null>(null);
-  const [fixedDeposits, setFixedDeposits] = useState<FixedDeposit[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  // Calculate totals from mock data
+  // Derived state from user context
+  const balance = user.accounts.reduce((sum, acc) => sum + acc.balance, 0);
+  const profile = { name: user.name, email: user.email, phone: '', customerId: user.id, joinedAt: null }; // Mapping user to profile structure if needed
+  const fixedDeposits = user.deposits || [];
+  const transactions = user.transactions || [];
+  const accountDetails = useMemo(() => {
+    return user.accounts.find(a => ['savings', 'checking', 'current'].includes(a.type.toLowerCase())) || user.accounts[0] || null;
+  }, [user.accounts]);
+
+  // Calculate totals from context data
   const mockTotalBalance = useMemo(() => {
-    // Sum all account balances (convert USD to RUB if needed, or just sum RUB accounts)
-    // For simplicity, we'll sum all balances regardless of currency
-    return mockUser.accounts.reduce((sum, acc) => {
-      // Convert USD to RUB at approximate rate (1 USD = 100 RUB) or just sum RUB
+    return user.accounts.reduce((sum, acc) => {
+      // Convert USD to RUB if needed (simplified)
       if (acc.currency === 'USD') {
-        return sum + (acc.balance * 100); // Approximate conversion
+        return sum + (acc.balance * 100);
       }
       return sum + acc.balance;
     }, 0);
-  }, []);
+  }, [user.accounts]);
 
   // Active loans count (available for future use)
   // const mockActiveLoans = useMemo(() => {
@@ -183,12 +114,12 @@ export const Dashboard = () => {
   // }, []);
 
   const mockActiveDepositsCount = useMemo(() => {
-    return mockUser.deposits.filter(dep => dep.status === 'Active').length;
-  }, []);
+    return user.deposits.filter(dep => dep.status === 'Active').length;
+  }, [user.deposits]);
 
-  // Get recent transactions from mock data (first 5, sorted by date descending)
+  // Get recent transactions from context (first 5)
   const mockRecentTransactions = useMemo(() => {
-    return [...mockUser.transactions]
+    return [...user.transactions]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5)
       .map(tx => ({
@@ -200,98 +131,13 @@ export const Dashboard = () => {
         referenceId: tx.id,
         category: tx.category,
       }));
-  }, [language]);
-  
-  useEffect(() => {
-    let unsubscribeUser: (() => void) | null = null;
-    let unsubscribeTransactions: (() => void) | null = null;
+  }, [user.transactions, language]);
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        navigate('/login');
-        return;
-      }
-      setUser(currentUser);
-      
-      // Subscribe to user document
-      const userRef = doc(db, 'users', currentUser.uid);
-      unsubscribeUser = onSnapshot(
-        userRef,
-        (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setBalance(data?.balance || 0);
-            setProfile(data?.profile || null);
-            setAccountDetails(data?.accountDetails || null);
-            setFixedDeposits(data?.fixedDeposits || []);
-            setLoading(false);
-          } else {
-            setLoading(false);
-          }
-        },
-        (error) => {
-          if (import.meta.env.DEV) {
-            console.error('Error fetching user data:', error);
-          }
-          setLoading(false);
-          toast({
-            title: "Unable to Load Account",
-            description: "We couldn't load your account information. Please check your connection and try refreshing the page.",
-            variant: "destructive",
-          });
-        }
-      );
-
-      // Subscribe to transactions subcollection
-      const transactionsRef = collection(userRef, 'transactions');
-      const transactionsQuery = query(transactionsRef, orderBy('date', 'desc'), limit(8));
-      unsubscribeTransactions = onSnapshot(
-        transactionsQuery,
-        (snapshot) => {
-          const txs = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Transaction[];
-          setTransactions(txs);
-        },
-        (error) => {
-          if (import.meta.env.DEV) {
-            console.error('Error fetching transactions:', error);
-          }
-          toast({
-            title: "Transaction History Unavailable",
-            description: "We couldn't load your recent transactions. Please try refreshing the page or contact support if the issue persists.",
-            variant: "destructive",
-          });
-        }
-      );
-    });
-
-    return () => {
-      unsubscribe();
-      if (unsubscribeUser) unsubscribeUser();
-      if (unsubscribeTransactions) unsubscribeTransactions();
-    };
-  }, [navigate]);
+  // Removed Firebase subscription effect
 
   const handleTransfer = async (from: string, to: string, amount: number) => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "User not authenticated. Please log in again.",
-        variant: "destructive",
-      });
-      throw new Error('User not authenticated');
-    }
-    
     try {
-      await performTransfer({
-        userId: user.uid,
-        fromAccount: from,
-        toAccount: to,
-        amount,
-        description: `Transfer to ${to}`,
-      });
+      await transferMoney(from, to, amount);
       toast({
         title: "Transfer Successful",
         description: `Successfully transferred ${formatCurrency(amount)} to ${to}`,
@@ -307,87 +153,18 @@ export const Dashboard = () => {
     }
   };
 
-  const handleCreateFD = async (amount: number) => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "User not authenticated. Please log in again.",
-        variant: "destructive",
-      });
-      throw new Error('User not authenticated');
-    }
-
-    try {
-      const userRef = doc(db, "users", user.uid);
-      
-      // Calculate maturity date (1 year from now)
-      const maturityDate = new Date();
-      maturityDate.setFullYear(maturityDate.getFullYear() + 1);
-      const maturityDateISO = maturityDate.toISOString();
-
-      // Create new FD object
-      const newFD = {
-        id: `FD-${Date.now()}`,
-        principal: amount,
-        interestRate: "7.10",
-        maturityDate: maturityDateISO,
-        status: "Active",
-      };
-
-      // Create transaction record
-      const newTransaction = {
-        description: `Fixed Deposit - ${newFD.id}`,
-        amount: amount,
-        type: "debit",
-        category: "Investment",
-        date: Timestamp.now(),
-        status: "success",
-      };
-
-      await runTransaction(db, async (transaction) => {
-        const userSnap = await transaction.get(userRef);
-        
-        if (!userSnap.exists()) {
-          throw new Error("User not found");
-        }
-
-        const data = userSnap.data();
-        const currentBalance = data?.balance || 0;
-
-        if (amount > currentBalance) {
-          throw new Error("Insufficient balance");
-        }
-
-        // Update user document
-        transaction.update(userRef, {
-          balance: currentBalance - amount,
-          fixedDeposits: arrayUnion(newFD),
-          transactions: arrayUnion(newTransaction),
-        });
-      });
-
-      // Add transaction to subcollection (for transaction history)
-      const transactionsRef = collection(userRef, "transactions");
-      await addDoc(transactionsRef, newTransaction);
-
-      toast({
-        title: "Fixed Deposit Created",
-        description: `Successfully created FD of ${formatCurrency(amount)}`,
-      });
-      setIsFDModalOpen(false);
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create fixed deposit. Please try again.';
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      throw error;
-    }
+  const handleCreateFD = async (_amount: number) => {
+    // Placeholder for future FD creation logic using UserContext
+    toast({
+      title: "Feature Coming Soon",
+      description: "Creating fixed deposits via this demo is not yet supported in the context.",
+    });
+    // To allow logic flow without crashing
+    setIsFDModalOpen(false);
   };
 
-  const lastLoginDate = profile?.joinedAt ? formatDate(profile.joinedAt, language) : 'N/A';
-  
+  const lastLoginDate = user.lastLogin || (profile?.joinedAt ? formatDate(profile.joinedAt, language) : 'N/A');
+
   // Filter only active deposits (keeping for Firebase compatibility, but using mock data primarily)
   // const activeDeposits = fixedDeposits?.filter(fd => fd?.status === 'Active' || fd?.status === 'active') || [];
   // const totalFD = activeDeposits.reduce((sum, fd) => sum + (fd?.principal || 0), 0);
@@ -397,9 +174,9 @@ export const Dashboard = () => {
   const monthlySpending = useMemo(() => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    
+
     // Calculate from mock data
-    const mockSpending = mockUser.transactions
+    const mockSpending = user.transactions
       .filter(tx => {
         try {
           const txDate = new Date(tx.date);
@@ -409,18 +186,14 @@ export const Dashboard = () => {
         }
       })
       .reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0);
-    
-    // Fallback to Firebase transactions if available and mock data is empty
+
+    // Fallback logic simplified for context data (always string dates)
     if (mockSpending === 0 && transactions && transactions.length > 0) {
       return transactions
         .filter(tx => {
           if (!tx.date) return false;
           try {
-            const txDate = tx.date instanceof Timestamp 
-              ? tx.date.toDate() 
-              : tx.date instanceof Date 
-                ? tx.date 
-                : new Date(tx.date);
+            const txDate = new Date(tx.date as string);
             return txDate >= startOfMonth && tx.type === 'debit';
           } catch {
             return false;
@@ -428,9 +201,12 @@ export const Dashboard = () => {
         })
         .reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0);
     }
-    
+
     return mockSpending;
   }, [transactions]);
+
+  // Use the provided mock spending stats if available
+  const displayMonthlySpending = spendingStats.total || monthlySpending;
 
   // Calculate spending change (compare current month with previous month) - using mock data
   const spendingChange = useMemo(() => {
@@ -439,8 +215,8 @@ export const Dashboard = () => {
     const startOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
-    // Calculate from mock data
-    const currentMonthSpending = mockUser.transactions
+    // Calculate from context data
+    const currentMonthSpending = user.transactions
       .filter(tx => {
         try {
           const txDate = new Date(tx.date);
@@ -451,7 +227,7 @@ export const Dashboard = () => {
       })
       .reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0);
 
-    const previousMonthSpending = mockUser.transactions
+    const previousMonthSpending = user.transactions
       .filter(tx => {
         try {
           const txDate = new Date(tx.date);
@@ -472,38 +248,28 @@ export const Dashboard = () => {
 
   // Prepare accounts for carousel (using mock data)
   const accounts = useMemo(() => {
-    const accountList = [];
-    
-    // Add mock accounts
-    mockUser.accounts.forEach((acc) => {
-      accountList.push({
+    return user.accounts.map((acc) => {
+      let type: 'savings' | 'current' | 'fd' = 'savings';
+      if (acc.type === 'Fixed Deposit') {
+        type = 'fd';
+      } else if (acc.type.toLowerCase() === 'checking') {
+        type = 'current';
+      }
+
+      return {
         id: acc.id,
-        type: acc.type.toLowerCase() === 'checking' ? 'current' : 'savings' as 'savings' | 'current',
+        type: type,
         accountNumber: acc.accountNo,
         balance: acc.balance,
         currency: acc.currency,
         iban: acc.iban,
         nickname: acc.nickname,
-      });
+        // Add specific properties for FD if needed by the component
+        interestRate: acc.interestRate?.toString(),
+        maturityDate: acc.maturityDate,
+      };
     });
-
-    // Filter active deposits for FD summary (using mock data)
-    const activeFDs = mockUser.deposits.filter(dep => dep.status === 'Active');
-    const activeFDTotal = activeFDs.reduce((sum, fd) => sum + (fd?.principal || 0), 0);
-
-    // Always add FD summary tab with dynamic labeling
-    accountList.push({
-      id: 'fd-summary',
-      type: 'fd' as const,
-      accountNumber: activeFDs.length === 0 ? 'Start Investment' : `Total Active: ${activeFDs.length}`,
-      balance: activeFDs.length === 0 ? 0 : activeFDTotal,
-      nickname: 'Investment FD',
-      interestRate: activeFDs.length === 0 ? 'Up to 8.5%' : (activeFDs[0]?.rate?.toString() || '7.10'),
-      maturityDate: activeFDs.length === 0 ? 'N/A' : 'Various',
-    });
-
-    return accountList;
-  }, []);
+  }, [user.accounts]);
 
   // Transform transactions for RecentTransactions component (fallback to Firebase if available)
   const transformedTransactions: RecentTransaction[] = useMemo(() => {
@@ -525,34 +291,13 @@ export const Dashboard = () => {
 
   // Prepare accounts for SendMoney component
   const sendMoneyAccounts = useMemo(() => {
-    const accountList = [];
-    
-    // Add accounts from the main accounts array (which includes nicknames)
-    accounts.forEach((acc) => {
-      // Only include savings/current accounts, not FD summary
-      if (acc.type === 'savings' || acc.type === 'current') {
-        accountList.push({
-          accountNumber: acc.accountNumber,
-          type: acc.type === 'savings' ? 'Savings' : 'Current',
-          balance: acc.balance,
-          nickname: acc.nickname,
-        });
-      }
-    });
-
-    // Add individual Fixed Deposit accounts from mock data
-    const activeFDs = mockUser.deposits.filter(dep => dep.status === 'Active');
-    activeFDs.forEach((fd) => {
-      accountList.push({
-        accountNumber: fd.id, // Use FD ID as identifier
-        type: 'Fixed Deposit',
-        balance: fd.principal,
-        nickname: 'Fixed Deposit', // Use generic name instead of raw ID
-      });
-    });
-
-    return accountList;
-  }, [accounts]);
+    return user.accounts.map((acc) => ({
+      accountNumber: acc.accountNumber,
+      type: acc.type,
+      balance: acc.balance,
+      nickname: acc.nickname,
+    }));
+  }, [user.accounts]);
 
   if (loading) {
     return (
@@ -576,15 +321,15 @@ export const Dashboard = () => {
     <DashboardLayout>
       <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-6">
         {/* Hero Section */}
-        <HeroSection 
-          userName={profile?.name || 'User'} 
+        <HeroSection
+          userName={profile?.name || 'User'}
           lastLogin={lastLoginDate}
         />
 
         {/* Summary Stats */}
         <SummaryStats
           totalBalance={mockTotalBalance}
-          monthlySpending={monthlySpending}
+          monthlySpending={displayMonthlySpending}
           activeFDs={mockActiveDepositsCount}
           spendingChange={spendingChange}
           loading={loading}
@@ -635,8 +380,8 @@ export const Dashboard = () => {
 
         {/* Recent Transactions */}
         <div className="mb-6">
-          <RecentTransactions 
-            data={mockRecentTransactions.length > 0 ? mockRecentTransactions : transformedTransactions} 
+          <RecentTransactions
+            data={mockRecentTransactions.length > 0 ? mockRecentTransactions : transformedTransactions}
             loading={loading}
           />
         </div>

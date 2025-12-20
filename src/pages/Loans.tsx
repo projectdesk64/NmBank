@@ -3,14 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useLanguage } from '@/hooks/useLanguage';
-import { currentUser, Loan } from '@/data/mockData';
+import { useUser } from '@/contexts/UserContext';
+import { Loan } from '@/types';
 import { TrendingUp, Inbox, CheckCircle2, XCircle, AlertCircle, Calendar, DollarSign } from 'lucide-react';
-import { cn } from '@/lib/utils';
+
 import { formatCurrency } from '@/utils/formatters';
 
 export const Loans = () => {
   const { language } = useLanguage();
-  const loans = currentUser.loans.filter(loan => loan.status === 'Active');
+  const { user } = useUser();
+  const loans = user.loans.filter(loan => loan.status === 'Active');
 
   // Format date
   const formatDate = (dateString: string): string => {
@@ -106,7 +108,7 @@ export const Loans = () => {
             {loans.map((loan) => {
               const progress = calculateProgress(loan);
               const remainingMonths = loan.tenureMonths - loan.paidMonths;
-              
+
               return (
                 <Card
                   key={loan.id}
@@ -186,7 +188,7 @@ export const Loans = () => {
                     {/* Remaining Info */}
                     <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
                       <p className="text-xs text-blue-800">
-                        {language === 'ru' 
+                        {language === 'ru'
                           ? `Осталось ${remainingMonths} ${remainingMonths === 1 ? 'месяц' : remainingMonths < 5 ? 'месяца' : 'месяцев'} до полного погашения`
                           : `${remainingMonths} ${remainingMonths === 1 ? 'month' : 'months'} remaining`}
                       </p>

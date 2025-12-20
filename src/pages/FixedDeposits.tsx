@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react'; // Added useMemo
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from '@/hooks/use-toast';
@@ -10,8 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileText, Calculator, TrendingUp, Receipt, Inbox } from 'lucide-react';
-import { currentUser, FixedDeposit as FixedDepositType } from '@/data/mockData';
+import { FixedDeposit as FixedDepositType } from '@/types'; // Import from types
 import { formatCurrency } from '@/utils/formatters';
+import { useUser } from '@/contexts/UserContext'; // Import context
 
 // Local translations
 const pageTranslations = {
@@ -21,6 +22,7 @@ const pageTranslations = {
     activeDeposits: 'Active Deposits',
     closed: 'Closed',
     certificateNo: 'Certificate No',
+    account: 'Account',
     maturity: 'Maturity',
     principal: 'Principal',
     taxCertificate: 'Tax Certificate (2-NDFL)',
@@ -61,6 +63,7 @@ const pageTranslations = {
     activeDeposits: 'Активные вклады',
     closed: 'Закрытые',
     certificateNo: 'Номер договора',
+    account: 'Счет',
     maturity: 'Дата окончания',
     principal: 'Сумма',
     taxCertificate: 'Справка 2-НДФЛ',
@@ -99,10 +102,26 @@ const pageTranslations = {
 
 export const FixedDeposits = () => {
   const { language } = useLanguage();
-  const [fixedDeposits, setFixedDeposits] = useState<FixedDepositType[]>(currentUser.deposits);
-  const [balance] = useState<number>(
-    currentUser.accounts.reduce((sum, acc) => sum + acc.balance, 0)
-  );
+  const { user } = useUser();
+
+  // Derived state from context
+  const fixedDeposits: FixedDepositType[] = useMemo(() => {
+    return user.accounts
+      .filter((acc) => acc.type === 'Fixed Deposit')
+      .map((acc) => ({
+        id: acc.id,
+        certificateNo: acc.accountNumber, // Map accountNumber to certificateNo
+        principal: acc.balance, // Map balance to principal
+        rate: acc.interestRate || 0, // Map interestRate to rate
+        maturityDate: acc.maturityDate || new Date().toISOString(), // Map maturityDate
+        accruedInterest: 0, // Default to 0 as it's not in Account
+        status: (acc.status === 'Active' ? 'Active' : 'Closed'), // Map status
+        nickname: acc.nickname, // Add nickname
+      }));
+  }, [user.accounts]);
+
+  const balance = user.accounts.reduce((sum, acc) => sum + acc.balance, 0);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRatesOpen, setIsRatesOpen] = useState(false);
   const [isCalcOpen, setIsCalcOpen] = useState(false);
@@ -140,16 +159,16 @@ export const FixedDeposits = () => {
   const calculateReturns = () => {
     const principal = parseFloat(calcAmount) || 0;
     const years = parseFloat(calcTenure) || 1;
-    const rate = 0.071; // 7.1% annual rate (0.071 as decimal)
-    
+    const rate = 0.082; // 8.2% annual rate (0.082 as decimal)
+
     if (principal <= 0 || years <= 0) {
       return { maturity: 0, interest: 0 };
     }
-    
+
     // Maturity = Amount + (Amount * 0.071 * Years)
     const interest = principal * rate * years;
     const maturity = principal + interest;
-    
+
     return { maturity, interest };
   };
 
@@ -162,11 +181,12 @@ export const FixedDeposits = () => {
       return;
     }
 
-    // Update local state
-    const updatedFDs = fixedDeposits.map((currentFD) =>
-      currentFD.id === fd.id ? { ...currentFD, status: 'Closed' as const } : currentFD
-    );
-    setFixedDeposits(updatedFDs);
+    // Update local state - Not implemented in context yet
+    toast({
+      title: translations.depositClosed,
+      description: "Closing deposits is a demo feature. Balance was not updated.",
+    });
+    // setFixedDeposits(updatedFDs);
 
     toast({
       title: translations.depositClosed,
@@ -207,14 +227,18 @@ export const FixedDeposits = () => {
       id: `fd-${Date.now()}`,
       certificateNo: `NMB-FD-${new Date().getFullYear()}-${String(fixedDeposits.length + 1).padStart(3, '0')}`,
       principal: amountNum,
-      rate: 7.10,
+      rate: 8.20,
       maturityDate: maturityDateISO,
       accruedInterest: 0,
       status: 'Active',
     };
 
     // Update local state
-    setFixedDeposits([...fixedDeposits, newFD]);
+    toast({
+      title: translations.fixedDepositCreated,
+      description: "Creating deposits is a demo feature. Balance was not updated.",
+    });
+    // setFixedDeposits([...fixedDeposits, newFD]);
 
     toast({
       title: translations.fixedDepositCreated,
@@ -251,8 +275,8 @@ export const FixedDeposits = () => {
   };
 
   return (
-      <DashboardLayout>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <DashboardLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tier 1: Summary Card */}
         <Card className="mb-6 bg-gradient-to-r from-white to-nmb-maroon/5 border-nmb-maroon/20">
           <CardContent className="p-6">
@@ -292,7 +316,7 @@ export const FixedDeposits = () => {
                     <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">{translations.rate}:</span>
-                        <span className="font-semibold">7.10% p.a.</span>
+                        <span className="font-semibold">{translations.rates === 'Rates' ? 'Up to 8.2%' : 'До 8.2%'} p.a.</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">{translations.tenure}:</span>
@@ -376,7 +400,7 @@ export const FixedDeposits = () => {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-gray-50">
-                          <TableHead className="font-semibold text-nmb-charcoal">{translations.certificateNo}</TableHead>
+                          <TableHead className="font-semibold text-nmb-charcoal">{translations.account}</TableHead>
                           <TableHead className="font-semibold text-nmb-charcoal">{translations.principal}</TableHead>
                           <TableHead className="font-semibold text-nmb-charcoal">Rate</TableHead>
                           <TableHead className="font-semibold text-nmb-charcoal">{translations.maturity}</TableHead>
@@ -386,7 +410,16 @@ export const FixedDeposits = () => {
                       <TableBody>
                         {activeDeposits.map((fd) => (
                           <TableRow key={fd.id} className="hover:bg-gray-50 transition-colors">
-                            <TableCell className="font-medium text-nmb-charcoal">{formatFDId(fd)}</TableCell>
+                            <TableCell className="font-medium text-nmb-charcoal">
+                              {fd.nickname ? (
+                                <div className="flex flex-col">
+                                  <span>{fd.nickname}</span>
+                                  <span className="text-xs text-gray-500 font-normal">{formatFDId(fd)}</span>
+                                </div>
+                              ) : (
+                                formatFDId(fd)
+                              )}
+                            </TableCell>
                             <TableCell className="font-semibold">
                               {formatCurrency(fd.principal)}
                             </TableCell>
@@ -420,7 +453,7 @@ export const FixedDeposits = () => {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-gray-50">
-                          <TableHead className="font-semibold text-nmb-charcoal">{translations.certificateNo}</TableHead>
+                          <TableHead className="font-semibold text-nmb-charcoal">{translations.account}</TableHead>
                           <TableHead className="font-semibold text-nmb-charcoal">{translations.principal}</TableHead>
                           <TableHead className="font-semibold text-nmb-charcoal">Rate</TableHead>
                           <TableHead className="font-semibold text-nmb-charcoal">{translations.maturity}</TableHead>
@@ -429,7 +462,16 @@ export const FixedDeposits = () => {
                       <TableBody>
                         {closedDeposits.map((fd) => (
                           <TableRow key={fd.id} className="hover:bg-gray-50 transition-colors">
-                            <TableCell className="font-medium text-nmb-charcoal">{formatFDId(fd)}</TableCell>
+                            <TableCell className="font-medium text-nmb-charcoal">
+                              {fd.nickname ? (
+                                <div className="flex flex-col">
+                                  <span>{fd.nickname}</span>
+                                  <span className="text-xs text-gray-500 font-normal">{formatFDId(fd)}</span>
+                                </div>
+                              ) : (
+                                formatFDId(fd)
+                              )}
+                            </TableCell>
                             <TableCell className="font-semibold">
                               {formatCurrency(fd.principal)}
                             </TableCell>
@@ -472,7 +514,7 @@ export const FixedDeposits = () => {
                     </TableRow>
                     <TableRow className="bg-nmb-maroon/10">
                       <TableCell className="font-semibold">1 Year</TableCell>
-                      <TableCell className="font-semibold text-nmb-maroon">7.10%</TableCell>
+                      <TableCell className="font-semibold text-nmb-maroon">8.20%</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>5 Years</TableCell>
@@ -521,7 +563,7 @@ export const FixedDeposits = () => {
                   step="0.1"
                 />
               </div>
-              
+
               {/* Estimated Returns Display */}
               {calcAmount && parseFloat(calcAmount) > 0 && calcTenure && parseFloat(calcTenure) > 0 && (
                 <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-gray-200">

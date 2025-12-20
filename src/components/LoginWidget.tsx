@@ -25,7 +25,7 @@ export const LoginWidget = ({ variant = 'default' }: LoginWidgetProps) => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
             if (import.meta.env.DEV) {
-                console.log("Logged in successfully!");
+
             }
             // Navigation would usually happen here via a listener in a higher component or router
         } catch (err: any) {

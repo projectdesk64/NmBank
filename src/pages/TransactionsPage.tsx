@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -19,21 +20,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowUpRight, ArrowDownLeft, ChevronLeft, ChevronRight, Filter, X } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, ChevronLeft, ChevronRight, Filter, X, Search, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const formatDate = (dateString: string | Date, language: 'en' | 'ru'): string => {
   if (!dateString) return 'N/A';
   try {
     const date = new Date(dateString);
-    const locale = language === 'ru' ? 'ru-RU' : 'en-IN';
+    const locale = language === 'ru' ? 'ru-RU' : 'en-GB';
     return new Intl.DateTimeFormat(locale, {
       day: 'numeric',
       month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: language === 'en',
+      year: 'numeric'
     }).format(date);
   } catch (error) {
     return 'N/A';
@@ -49,6 +47,7 @@ export const TransactionsPage = () => {
   const itemsPerPage = 10;
 
   // Filter State
+  const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
@@ -56,24 +55,48 @@ export const TransactionsPage = () => {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter, typeFilter, dateFilter]);
+  }, [searchQuery, statusFilter, typeFilter, dateFilter]);
 
-  // Sort transactions by date (descending)
-  const sortedTransactions = [...user.transactions].sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
-    return dateB - dateA;
-  });
+  // Calculate Running Balance Dynamically
+  const transactionsWithBalance = useMemo(() => {
+    // 1. Create a copy and sort Oldest -> Newest
+    const sortedAsc = [...user.transactions].sort((a, b) =>
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    let currentBalance = 0;
+
+    // 2. Calculate balance for each row
+    const withBalance = sortedAsc.map(t => {
+      if (t.type === 'credit') {
+        currentBalance += t.amount;
+      } else {
+        currentBalance -= t.amount;
+      }
+      return { ...t, runningBalance: currentBalance };
+    });
+
+    // 3. Reverse back to Newest -> Oldest for display
+    return withBalance.reverse();
+  }, [user.transactions]);
 
   // Filter Logic
-  const filteredTransactions = sortedTransactions.filter(tx => {
-    // 1. Status Filter
+  const filteredTransactions = transactionsWithBalance.filter(tx => {
+    // 1. Search Query (Description or Amount)
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesDescription = tx.description.toLowerCase().includes(query);
+      const matchesAmount = tx.amount.toString().includes(query);
+      if (!matchesDescription && !matchesAmount) return false;
+    }
+
+    // 2. Status Filter
     if (statusFilter !== 'all' && (tx.status || 'success') !== statusFilter) return false;
 
-    // 2. Type Filter
+    // 3. Type Filter
     if (typeFilter !== 'all' && tx.type !== typeFilter) return false;
 
-    // 3. Date Filter
+    // 4. Date Filter
     if (dateFilter !== 'all') {
       const txDate = new Date(tx.date);
       const now = new Date();
@@ -112,82 +135,106 @@ export const TransactionsPage = () => {
   };
 
   const clearFilters = () => {
+    setSearchQuery('');
     setStatusFilter('all');
     setTypeFilter('all');
     setDateFilter('all');
   };
 
-  const hasActiveFilters = statusFilter !== 'all' || typeFilter !== 'all' || dateFilter !== 'all';
+  const hasActiveFilters = searchQuery !== '' || statusFilter !== 'all' || typeFilter !== 'all' || dateFilter !== 'all';
 
   return (
     <DashboardLayout>
       <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-heading font-bold text-nmb-charcoal mb-2">
-            Transaction History
-          </h1>
-          <p className="text-gray-600">
-            View all your account transactions
-          </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-nmb-charcoal mb-2">
+              Transaction History
+            </h1>
+            <p className="text-gray-600">
+              View all your account transactions
+            </p>
+          </div>
+          <Button className="bg-nmb-maroon hover:bg-nmb-maroon/90 text-white gap-2">
+            <Download className="h-4 w-4" />
+            Download Statement
+          </Button>
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            <div className="w-full md:w-48">
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Transaction Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="credit">Credit (Deposit)</SelectItem>
-                  <SelectItem value="debit">Debit (Withdrawal)</SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            {/* Search Bar */}
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search transactions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
             </div>
 
-            <div className="w-full md:w-48">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="success">Success</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Filter Dropdowns */}
+            <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+              <div className="w-full md:w-40">
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="credit">Credit</SelectItem>
+                    <SelectItem value="debit">Debit</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="w-full md:w-48">
-              <Select value={dateFilter} onValueChange={setDateFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Date Range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="last30">Last 30 Days</SelectItem>
-                  <SelectItem value="last90">Last 90 Days</SelectItem>
-                  <SelectItem value="thisYear">This Year (2025)</SelectItem>
-                  <SelectItem value="lastYear">Last Year (2024)</SelectItem>
-                  <SelectItem value="older">Older</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="w-full md:w-40">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="success">Success</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="w-full md:w-40">
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Date" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="last30">Last 30 Days</SelectItem>
+                    <SelectItem value="last90">Last 90 Days</SelectItem>
+                    <SelectItem value="thisYear">This Year</SelectItem>
+                    <SelectItem value="lastYear">Last Year</SelectItem>
+                    <SelectItem value="older">Older</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
           {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              onClick={clearFilters}
-              className="text-red-500 hover:text-red-600 hover:bg-red-50"
-            >
-              <X className="h-4 w-4 mr-2" />
-              Clear Filters
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                onClick={clearFilters}
+                size="sm"
+                className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8"
+              >
+                <X className="h-3 w-3 mr-2" />
+                Clear Filters
+              </Button>
+            </div>
           )}
         </div>
 
@@ -196,7 +243,7 @@ export const TransactionsPage = () => {
           {filteredTransactions.length === 0 ? (
             <div className="text-center py-16">
               <Filter className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600 mb-2">No transactions match your filters</p>
+              <p className="text-gray-600 mb-2">No transactions match your search or filters</p>
               <Button variant="link" onClick={clearFilters} className="text-nmb-maroon">
                 Clear all filters
               </Button>
@@ -207,11 +254,12 @@ export const TransactionsPage = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50">
-                      <TableHead className="font-semibold text-nmb-charcoal">Date & Time</TableHead>
+                      <TableHead className="font-semibold text-nmb-charcoal">Date</TableHead>
                       <TableHead className="font-semibold text-nmb-charcoal">Description</TableHead>
                       <TableHead className="font-semibold text-nmb-charcoal">Category</TableHead>
                       <TableHead className="font-semibold text-nmb-charcoal">Type</TableHead>
                       <TableHead className="font-semibold text-nmb-charcoal text-right">Amount</TableHead>
+                      <TableHead className="font-semibold text-nmb-charcoal text-right">Balance</TableHead>
                       <TableHead className="font-semibold text-nmb-charcoal">Status</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -254,6 +302,11 @@ export const TransactionsPage = () => {
                           )}>
                             {transaction.type === 'credit' ? '+' : '-'}
                             {formatCurrency(Math.abs(transaction.amount))}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className="text-sm font-bold text-gray-900 font-mono tabular-nums">
+                            {formattedBalance(transaction.runningBalance)}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -323,17 +376,17 @@ export const TransactionsPage = () => {
         </div>
 
         {/* Summary Stats */}
-        {sortedTransactions.length > 0 && (
+        {transactionsWithBalance.length > 0 && (
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
               <p className="text-sm text-gray-600 mb-1">Total Transactions</p>
-              <p className="text-2xl font-bold text-nmb-charcoal">{sortedTransactions.length}</p>
+              <p className="text-2xl font-bold text-nmb-charcoal">{transactionsWithBalance.length}</p>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
               <p className="text-sm text-gray-600 mb-1">Total Credits</p>
               <p className="text-2xl font-bold text-green-600">
                 {formatCurrency(
-                  sortedTransactions
+                  transactionsWithBalance
                     .filter(tx => tx.type === 'credit')
                     .reduce((sum, tx) => sum + Math.abs(tx.amount), 0)
                 )}
@@ -343,7 +396,7 @@ export const TransactionsPage = () => {
               <p className="text-sm text-gray-600 mb-1">Total Debits</p>
               <p className="text-2xl font-bold text-red-600">
                 {formatCurrency(
-                  sortedTransactions
+                  transactionsWithBalance
                     .filter(tx => tx.type === 'debit')
                     .reduce((sum, tx) => sum + Math.abs(tx.amount), 0)
                 )}
@@ -354,4 +407,9 @@ export const TransactionsPage = () => {
       </div>
     </DashboardLayout>
   );
+};
+
+// Helper for formatted balance display
+const formattedBalance = (amount: number) => {
+  return amount.toLocaleString('ru-RU') + ' ₽';
 };

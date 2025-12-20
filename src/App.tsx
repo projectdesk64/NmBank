@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Skeleton } from './components/ui/skeleton';
+import { Toaster } from '@/components/ui/toaster';
 
 // Lazy load pages for better code splitting
 const LandingPage = lazy(() => import('./pages/LandingPage').then(module => ({ default: module.LandingPage })));
@@ -57,6 +58,7 @@ function App() {
               <Route path="/services/:slug" element={<ServicePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <Toaster />
           </Suspense>
         </BrowserRouter>
       </LanguageProvider>

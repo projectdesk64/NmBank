@@ -17,6 +17,15 @@ export const spendingStats: MonthlySpending = {
 
 // --- 2. Centralized Transactions (Mix of High Value & Daily Use) ---
 export const transactions: Transaction[] = [
+  {
+    id: 't_may3_2025_fd',
+    date: '2025-05-03',
+    description: 'Fixed Deposit',
+    amount: 13506600000, // 13.5 Billion Debit
+    type: 'debit',
+    category: 'Fixed Deposit',
+    status: 'completed'
+  },
   // --- 2025 Future Transactions ---
   {
     id: 't_dec_2025',

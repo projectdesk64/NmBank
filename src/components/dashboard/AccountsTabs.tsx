@@ -85,7 +85,7 @@ export const AccountsTabs = ({
   onViewDetails,
   onManageFDs,
 }: AccountsTabsProps) => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [revealedAccounts, setRevealedAccounts] = useState<Set<string>>(new Set());
   const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
@@ -226,7 +226,7 @@ export const AccountsTabs = ({
                   typeof account.balance === 'string' ? account.balance : formatCurrency(account.balance)
                 ) : (
                   <span className="inline-flex items-center gap-2">
-                    <span className="text-gray-400">{language === 'ru' ? '₽' : '₹'}</span>
+                    <span className="text-gray-400">₽</span>
                     <span className="flex gap-1.5">
                       {[1, 2, 3, 4, 5, 6].map((i) => (
                         <span key={i} className="w-2.5 h-2.5 bg-gray-300 rounded-full"></span>

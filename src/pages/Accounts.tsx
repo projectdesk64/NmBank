@@ -11,7 +11,7 @@ import { formatCurrency } from '@/utils/formatters';
 export const Accounts = () => {
   const { language } = useLanguage();
   const { user } = useUser();
-  const accounts = user.accounts;
+  const accounts = user.accounts.filter(acc => acc.balance > 0);
 
   // Get status badge variant
   const getStatusBadge = (status: Account['status']) => {
@@ -42,8 +42,8 @@ export const Accounts = () => {
     }
   };
 
-  // Calculate total balance
-  const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+  // Calculate total balance (Client Request: ONLY reflect Main Savings)
+  const totalBalance = accounts.find(acc => acc.type === 'Savings Account')?.balance || 0;
 
   return (
     <DashboardLayout>
@@ -102,9 +102,7 @@ export const Accounts = () => {
                       <TableHead className="font-semibold text-nmb-charcoal">
                         {language === 'ru' ? 'Валюта' : 'Currency'}
                       </TableHead>
-                      <TableHead className="font-semibold text-nmb-charcoal">
-                        {language === 'ru' ? 'IBAN' : 'IBAN'}
-                      </TableHead>
+
                       <TableHead className="font-semibold text-nmb-charcoal">
                         {language === 'ru' ? 'Статус' : 'Status'}
                       </TableHead>
@@ -125,9 +123,7 @@ export const Accounts = () => {
                         <TableCell className="text-gray-700">
                           {account.currency}
                         </TableCell>
-                        <TableCell className="font-mono text-sm text-gray-600">
-                          {account.iban}
-                        </TableCell>
+
                         <TableCell>
                           {getStatusBadge(account.status)}
                         </TableCell>

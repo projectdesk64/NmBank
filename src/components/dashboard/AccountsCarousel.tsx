@@ -50,13 +50,13 @@ const accountTypeLabels = {
   fd: 'FIXED DEPOSIT',
 };
 
-export const AccountsCarousel = ({ 
-  accounts, 
-  showBalance, 
+export const AccountsCarousel = ({
+  accounts,
+  showBalance,
   onToggleBalance,
-  loading = false 
+  loading = false
 }: AccountsCarouselProps) => {
-  const { language } = useLanguage();
+  // const { language } = useLanguage(); // Removed unused language
   const [revealedAccounts, setRevealedAccounts] = useState<Set<string>>(new Set());
   const [scrollPosition, setScrollPosition] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -102,13 +102,13 @@ export const AccountsCarousel = ({
     if (!scrollRef.current) return;
     const cardWidth = 380; // Card width + gap
     const currentScroll = scrollRef.current.scrollLeft;
-    const scrollAmount = direction === 'left' 
-      ? currentScroll - cardWidth 
+    const scrollAmount = direction === 'left'
+      ? currentScroll - cardWidth
       : currentScroll + cardWidth;
-    
-    scrollRef.current.scrollTo({ 
-      left: scrollAmount, 
-      behavior: 'smooth' 
+
+    scrollRef.current.scrollTo({
+      left: scrollAmount,
+      behavior: 'smooth'
     });
   };
 
@@ -141,7 +141,7 @@ export const AccountsCarousel = ({
           <h2 className="text-2xl font-heading font-bold text-nmb-charcoal">My Accounts</h2>
           <p className="text-sm text-gray-500 mt-1">Manage and view your accounts</p>
         </div>
-        
+
         {/* Toggle Balance - Redesigned with Switch */}
         <div className="flex items-center gap-3 bg-white rounded-lg px-4 py-2.5 border border-nmb-mist shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center gap-2">
@@ -150,8 +150,8 @@ export const AccountsCarousel = ({
             ) : (
               <EyeOff className="h-4 w-4 text-gray-400" />
             )}
-            <Label 
-              htmlFor="balance-toggle" 
+            <Label
+              htmlFor="balance-toggle"
               className="text-sm font-medium text-nmb-charcoal cursor-pointer select-none"
             >
               {showBalance ? 'Hide' : 'Show'} Balance
@@ -177,7 +177,7 @@ export const AccountsCarousel = ({
             <ArrowLeft className="h-5 w-5 text-nmb-charcoal" />
           </button>
         )}
-        
+
         {canScrollRight && (
           <button
             onClick={() => scroll('right')}
@@ -192,8 +192,8 @@ export const AccountsCarousel = ({
         <div
           ref={scrollRef}
           className="flex gap-5 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory scroll-smooth"
-          style={{ 
-            scrollbarWidth: 'none', 
+          style={{
+            scrollbarWidth: 'none',
             msOverflowStyle: 'none',
             WebkitOverflowScrolling: 'touch'
           }}
@@ -285,9 +285,9 @@ export const AccountsCarousel = ({
                       <p className="text-3xl font-heading font-bold text-white tabular-nums leading-tight">
                         {showBalance ? formatCurrency(account.balance) : (
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="text-white/80">{language === 'ru' ? '₽' : '₹'}</span>
+                            <span className="text-white/80">₽</span>
                             <span className="flex gap-1.5">
-                              {[1,2,3,4,5,6].map((i) => (
+                              {[1, 2, 3, 4, 5, 6].map((i) => (
                                 <span key={i} className="w-2.5 h-2.5 bg-white/50 rounded-full"></span>
                               ))}
                             </span>
@@ -322,8 +322,8 @@ export const AccountsCarousel = ({
                   key={index}
                   className={cn(
                     "h-1.5 rounded-full transition-all duration-200",
-                    isActive 
-                      ? "w-6 bg-nmb-blue" 
+                    isActive
+                      ? "w-6 bg-nmb-blue"
                       : "w-1.5 bg-gray-300"
                   )}
                 />

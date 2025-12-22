@@ -213,7 +213,7 @@ export const currentUser: User = {
       accountNo: '40817810099910004567', // Legacy support
       type: 'Savings Account',
       nickname: 'Main Savings',
-      balance: 27013200000, // 27 Billion
+      balance: 13506590850.00, // EXACT TARGET
       currency: 'RUB',
       status: 'Active',
       ifsc: 'NMB0001234',
@@ -222,30 +222,30 @@ export const currentUser: User = {
     // 2. FD 2018 (Unique)
     {
       id: 'fd1',
-      accountNumber: '42301810099910002018',
-      accountNo: '42301810099910002018',
+      accountNumber: '40817810099910004567',
+      accountNo: '40817810099910004567',
       type: 'Fixed Deposit',
-      nickname: 'Fixed Deposit 2018',
+      nickname: 'Fixed Deposit 2025',
       balance: 13506600000, // 13.5 Billion
       currency: 'RUB',
       status: 'Active',
       interestRate: 7.5,
-      maturityDate: '2028-12-31',
+      maturityDate: '2032-12-31',
       ifsc: 'NMB0001234',
       branch: 'Moscow Main Branch'
     },
     // 3. FD 2025 (Unique)
     {
       id: 'fd2',
-      accountNumber: '42301810099910002025',
-      accountNo: '42301810099910002025',
+      accountNumber: '40817810099910004567',
+      accountNo: '40817810099910004567',
       type: 'Fixed Deposit',
-      nickname: 'Fixed Deposit 2025',
-      balance: 13506600000, // 13.5 Billion
+      nickname: 'Fixed Deposit 2018',
+      balance: 0,
       currency: 'RUB',
       status: 'Active',
       interestRate: 8.2,
-      maturityDate: '2030-12-31',
+      maturityDate: '2025-05-1',
       ifsc: 'NMB0001234',
       branch: 'Moscow Main Branch'
     }
@@ -289,21 +289,7 @@ export const currentUser: User = {
   deposits: [],
 
   // LOANS (High Value)
-  loans: [
-    {
-      id: 'loan-002',
-      loanType: 'Home Loan', // Mortgage
-      accountNo: 'LN-4002-002',
-      outstandingBalance: 8500000.00,
-      originalAmount: 10000000.00,
-      emiAmount: 125000.00,
-      nextPaymentDate: '2024-12-20T00:00:00.000Z',
-      interestRate: 9.75,
-      status: 'Active',
-      tenureMonths: 120,
-      paidMonths: 12,
-    }
-  ],
+  loans: [],
 
   // Link global transactions
   transactions: transactions,

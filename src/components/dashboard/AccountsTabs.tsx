@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { AnimatedTabs, Tab } from '@/components/ui/animated-tabs';
 import { SpendingPieChart } from '@/components/dashboard/SpendingPieChart';
 import { SendMoney } from '@/components/dashboard/SendMoney';
-import { formatCurrency } from '@/utils/formatters';
+import { formatCurrency, formatDate } from '@/utils/formatters';
 import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 
@@ -316,7 +316,7 @@ export const AccountsTabs = ({
                       {t.dashboard.accounts.maturityDate}
                     </p>
                     <p className="text-lg font-medium text-gray-900">
-                      {new Date(account.maturityDate).toLocaleDateString()}
+                      {formatDate(account.maturityDate)}
                     </p>
                   </div>
                 )}

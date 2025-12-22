@@ -49,8 +49,10 @@ export const Accounts = () => {
     }
   };
 
-  // Calculate total balance (Client Request: ONLY reflect Main Savings)
-  const totalBalance = accounts.find(acc => acc.type === 'Savings Account')?.balance || 0;
+  // Calculate Net Worth (Sum of ALL Active Accounts: Savings + Active FDs)
+  const totalBalance = accounts
+    .filter(acc => acc.status === 'Active')
+    .reduce((sum, acc) => sum + acc.balance, 0);
 
   return (
     <DashboardLayout>
@@ -61,7 +63,7 @@ export const Accounts = () => {
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">
-                  {language === 'ru' ? 'Общий баланс' : 'Total Balance'}
+                  {language === 'ru' ? 'Чистая стоимость' : 'Net Worth'}
                 </p>
                 <p className="text-3xl font-bold text-nmb-maroon">
                   {formatCurrency(totalBalance)}

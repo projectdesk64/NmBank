@@ -20,7 +20,7 @@ export interface Card {
     cardNumber: string;
     expiry: string;
     cvv: string;
-    status: 'Active' | 'Blocked' | 'Expired';
+    status: 'Active' | 'Blocked' | 'Expired' | 'Processing';
     balance?: number;
     limit?: number;
     cardholderName: string;

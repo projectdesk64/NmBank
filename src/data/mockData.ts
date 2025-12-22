@@ -213,7 +213,7 @@ export const currentUser: User = {
       accountNo: '40817810099910004567', // Legacy support
       type: 'Savings Account',
       nickname: 'Main Savings',
-      balance: 13506590850.00, // EXACT TARGET
+      balance: 13506600020.00, // Adjusted to match exact Net Worth target
       currency: 'RUB',
       status: 'Active',
       ifsc: 'NMB0001234',

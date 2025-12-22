@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useUser } from '@/contexts/UserContext';
 import { Loan } from '@/types';
-import { TrendingUp, Inbox, CheckCircle2, XCircle, AlertCircle, Calendar, DollarSign } from 'lucide-react';
+import { TrendingUp, Inbox, CheckCircle2, XCircle, AlertCircle, Calendar, RussianRuble } from 'lucide-react';
 
 import { formatCurrency } from '@/utils/formatters';
 
@@ -158,7 +158,7 @@ export const Loans = () => {
                     <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-200">
                       <div>
                         <p className="text-xs text-gray-600 mb-1 flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
+                          <RussianRuble className="h-3 w-3" />
                           {language === 'ru' ? 'EMI' : 'EMI Amount'}
                         </p>
                         <p className="font-semibold text-nmb-charcoal">

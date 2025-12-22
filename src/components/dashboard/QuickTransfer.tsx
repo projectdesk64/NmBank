@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Send, User, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -38,7 +38,7 @@ export const QuickTransfer = () => {
           <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Amount</label>
           <div className="flex items-center gap-2">
             <div className="flex-1 relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">{language === 'ru' ? '₽' : '$'}</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₽</span>
               <input
                 type="number"
                 value={amount}
@@ -48,7 +48,7 @@ export const QuickTransfer = () => {
               />
             </div>
             <button className="flex items-center gap-2 px-3 py-3 bg-gray-100 rounded-xl text-nmb-charcoal font-medium hover:bg-gray-200 transition-colors">
-              {language === 'ru' ? 'RUB' : 'USD'} <ChevronDown className="w-4 h-4" />
+              RUB <ChevronDown className="w-4 h-4" />
             </button>
           </div>
         </div>

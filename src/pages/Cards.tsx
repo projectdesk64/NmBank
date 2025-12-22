@@ -1,10 +1,9 @@
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useUser } from '@/contexts/UserContext';
 import { Card as CardType } from '@/types';
-import { CreditCard, Inbox, CheckCircle2, XCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Inbox, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/utils/formatters';
@@ -37,34 +36,7 @@ export const Cards = () => {
     setRevealedCards(newRevealed);
   };
 
-  // Get status badge
-  const getStatusBadge = (status: CardType['status']) => {
-    switch (status) {
-      case 'Active':
-        return (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
-            Active
-          </Badge>
-        );
-      case 'Blocked':
-        return (
-          <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
-            <XCircle className="h-3 w-3 mr-1" />
-            Blocked
-          </Badge>
-        );
-      case 'Expired':
-        return (
-          <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
-            <AlertCircle className="h-3 w-3 mr-1" />
-            Expired
-          </Badge>
-        );
-      default:
-        return <Badge>{status}</Badge>;
-    }
-  };
+
 
   // Get card gradient based on type
   const getCardGradient = (type: CardType['type'], status: CardType['status']) => {
@@ -92,12 +64,7 @@ export const Cards = () => {
                   {cards.length} {language === 'ru' ? 'карт' : 'Cards'}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <CreditCard className="h-8 w-8 text-nmb-maroon" />
-                <span className="text-sm text-gray-600">
-                  {cards.filter(c => c.status === 'Active').length} {language === 'ru' ? 'активных' : 'Active'}
-                </span>
-              </div>
+
             </div>
           </CardContent>
         </Card>
@@ -151,6 +118,7 @@ export const Cards = () => {
                         <div className="w-8 h-6 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-sm"></div>
                       </div>
                     </div>
+
                     <button
                       onClick={() => toggleReveal(card.id)}
                       className="p-2 rounded-full hover:bg-white/10 text-white/80 transition-colors"
@@ -209,7 +177,17 @@ export const Cards = () => {
                         )}
                       </div>
                       <div className="text-right">
-                        {getStatusBadge(card.status)}
+                        <div className={cn(
+                          "px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md border border-white/20 flex items-center gap-2",
+                          card.status === 'Processing'
+                            ? 'bg-white/20 text-white'
+                            : 'bg-white/90 text-gray-900'
+                        )}>
+                          {card.status === 'Processing' && (
+                            <div className="w-1.5 h-1.5 rounded-full bg-yellow-300 animate-pulse"></div>
+                          )}
+                          {card.status}
+                        </div>
                       </div>
                     </div>
                   </div>

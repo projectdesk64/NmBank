@@ -267,80 +267,62 @@ export const AccountsTabs = ({
               )}
 
               {/* Account Type Specific Info */}
-              {account.type === 'fd' && (
-                <>
-                  {account.interestRate && (
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
-                        {t.dashboard.accounts.interestRate}
-                      </p>
-                      <p className="text-sm font-semibold text-green-600">
-                        {account.interestRate}
-                      </p>
-                    </div>
-                  )}
-                  {account.maturityDate && (
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
-                        {t.dashboard.accounts.maturityDate}
-                      </p>
-                      <p className="text-sm font-medium text-nmb-charcoal">
-                        {account.maturityDate}
-                      </p>
-                    </div>
-                  )}
-                  {/* Account Status for FDs */}
-                  <div className="mt-1">
-                    <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
-                      {t.dashboard.accounts.accountStatus}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <div className={cn("w-2 h-2 rounded-full",
-                        (account.status === 'Active' || !account.status) ? 'bg-green-500' :
-                          account.status === 'Closed' ? 'bg-gray-400' : 'bg-red-500'
-                      )}></div>
-                      <p className={cn("text-sm font-medium",
-                        (account.status === 'Active' || !account.status) ? 'text-green-700' :
-                          account.status === 'Closed' ? 'text-gray-600' : 'text-red-600'
-                      )}>
-                        {account.status || 'Active'}
-                      </p>
-                    </div>
+              <div className="col-span-2 grid grid-cols-3 gap-6 mt-2">
+                {/* 1. Account Status (Always Show) */}
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                    {t.dashboard.accounts.accountStatus}
+                  </p>
+                  <div className="flex items-center pt-1">
+                    <div className={cn("w-2 h-2 rounded-full mr-2",
+                      (account.status === 'Active' || !account.status) ? 'bg-green-500' :
+                        account.status === 'Closed' ? 'bg-red-500' : 'bg-gray-400'
+                    )}></div>
+                    <span className={cn("font-medium",
+                      (account.status === 'Active' || !account.status) ? 'text-green-700' :
+                        account.status === 'Closed' ? 'text-red-600' : 'text-gray-600'
+                    )}>
+                      {account.status || 'Active'}
+                    </span>
                   </div>
-                </>
-              )}
+                </div>
 
-              {/* Default Account Status */}
-              {account.type !== 'fd' && (
-                <>
+                {/* 2. Account Type (Always Show) */}
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                    {t.dashboard.accounts.accountType}
+                  </p>
+                  <p className="text-lg font-medium text-nmb-charcoal capitalize">
+                    {getAccountLabel(account.type, t)}
+                  </p>
+                </div>
+
+                {/* 3. Interest Rate (Only if exists) */}
+                {account.interestRate && (
                   <div>
                     <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
-                      {t.dashboard.accounts.accountStatus}
+                      {t.dashboard.accounts.interestRate}
                     </p>
-                    <div className="flex items-center gap-2">
-                      <div className={cn("w-2 h-2 rounded-full",
-                        (account.status === 'Active' || !account.status) ? "bg-green-500" :
-                          account.status === 'Inactive' ? "bg-gray-300" : "bg-red-500"
-                      )}></div>
-                      <p className={cn("text-sm font-medium",
-                        (account.status === 'Active' || !account.status) ? "text-nmb-charcoal" : "text-gray-500"
-                      )}>
-                        {account.status || t.dashboard.accounts.active}
-                      </p>
-                    </div>
+                    <p className="text-lg font-medium text-gray-900">
+                      {account.interestRate}%
+                    </p>
                   </div>
-                  {!account.ifsc && !account.branch && (
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
-                        {t.dashboard.accounts.accountType}
-                      </p>
-                      <p className="text-sm font-medium text-nmb-charcoal capitalize">
-                        {getAccountLabel(account.type, t)}
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
+                )}
+
+                {/* 4. Maturity Date (Only if exists) */}
+                {account.maturityDate && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                      {t.dashboard.accounts.maturityDate}
+                    </p>
+                    <p className="text-lg font-medium text-gray-900">
+                      {new Date(account.maturityDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+
             </div>
 
             {/* Footer: View Details Button */}

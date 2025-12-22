@@ -241,7 +241,7 @@ export const currentUser: User = {
       accountNo: '40817810099910004567',
       type: 'Fixed Deposit',
       nickname: 'Fixed Deposit 2018',
-      balance: 0,
+      balance: 27013200020,
       currency: 'RUB',
       status: 'Closed',
       interestRate: 8.2,

@@ -4,7 +4,7 @@ export interface Account {
     accountNo?: string; // Backward compatibility
     balance: number;
     currency: string;
-    status: 'Active' | 'Inactive' | 'Frozen';
+    status: 'Active' | 'Inactive' | 'Frozen' | 'Closed';
     iban?: string;
     type: string;
     nickname?: string;

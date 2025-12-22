@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/utils/formatters';
-import { useLanguage } from '@/hooks/useLanguage';
 
 interface Account {
   id: string;

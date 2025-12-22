@@ -243,7 +243,7 @@ export const currentUser: User = {
       nickname: 'Fixed Deposit 2018',
       balance: 0,
       currency: 'RUB',
-      status: 'Active',
+      status: 'Closed',
       interestRate: 8.2,
       maturityDate: '2025-05-1',
       ifsc: 'NMB0001234',

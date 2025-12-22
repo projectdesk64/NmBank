@@ -11,7 +11,7 @@ import { formatCurrency } from '@/utils/formatters';
 export const Accounts = () => {
   const { language } = useLanguage();
   const { user } = useUser();
-  const accounts = user.accounts.filter(acc => acc.balance > 0);
+  const accounts = user.accounts;
 
   // Get status badge variant
   const getStatusBadge = (status: Account['status']) => {
@@ -35,6 +35,13 @@ export const Accounts = () => {
           <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
             <AlertCircle className="h-3 w-3 mr-1" />
             Frozen
+          </Badge>
+        );
+      case 'Closed':
+        return (
+          <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
+            <XCircle className="h-3 w-3 mr-1" />
+            Closed
           </Badge>
         );
       default:
@@ -63,7 +70,7 @@ export const Accounts = () => {
               <div className="flex items-center gap-2">
                 <Wallet className="h-8 w-8 text-nmb-maroon" />
                 <span className="text-sm text-gray-600">
-                  {accounts.length} {language === 'ru' ? 'счетов' : 'Accounts'}
+                  {accounts.filter(a => a.status === 'Active').length} {language === 'ru' ? 'счетов' : 'Accounts'}
                 </span>
               </div>
             </div>

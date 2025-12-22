@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { AnimatedTabs, Tab } from '@/components/ui/animated-tabs';
 import { SpendingPieChart } from '@/components/dashboard/SpendingPieChart';
 import { SendMoney } from '@/components/dashboard/SendMoney';
-import { cn } from '@/lib/utils';
-import { useLanguage } from '@/hooks/useLanguage';
 import { formatCurrency } from '@/utils/formatters';
+import { useLanguage } from '@/hooks/useLanguage';
+import { cn } from '@/lib/utils';
 
 interface Account {
   id: string;
@@ -20,6 +20,7 @@ interface Account {
   branch?: string;
   interestRate?: string;
   maturityDate?: string;
+  status?: string;
 }
 
 interface AccountsTabsProps {
@@ -288,6 +289,24 @@ export const AccountsTabs = ({
                       </p>
                     </div>
                   )}
+                  {/* Account Status for FDs */}
+                  <div className="mt-1">
+                    <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
+                      {t.dashboard.accounts.accountStatus}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <div className={cn("w-2 h-2 rounded-full",
+                        (account.status === 'Active' || !account.status) ? 'bg-green-500' :
+                          account.status === 'Closed' ? 'bg-gray-400' : 'bg-red-500'
+                      )}></div>
+                      <p className={cn("text-sm font-medium",
+                        (account.status === 'Active' || !account.status) ? 'text-green-700' :
+                          account.status === 'Closed' ? 'text-gray-600' : 'text-red-600'
+                      )}>
+                        {account.status || 'Active'}
+                      </p>
+                    </div>
+                  </div>
                 </>
               )}
 
@@ -299,9 +318,14 @@ export const AccountsTabs = ({
                       {t.dashboard.accounts.accountStatus}
                     </p>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <p className="text-sm font-medium text-nmb-charcoal">
-                        {t.dashboard.accounts.active}
+                      <div className={cn("w-2 h-2 rounded-full",
+                        (account.status === 'Active' || !account.status) ? "bg-green-500" :
+                          account.status === 'Inactive' ? "bg-gray-300" : "bg-red-500"
+                      )}></div>
+                      <p className={cn("text-sm font-medium",
+                        (account.status === 'Active' || !account.status) ? "text-nmb-charcoal" : "text-gray-500"
+                      )}>
+                        {account.status || t.dashboard.accounts.active}
                       </p>
                     </div>
                   </div>

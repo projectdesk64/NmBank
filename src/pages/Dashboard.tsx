@@ -255,6 +255,7 @@ export const Dashboard = () => {
         // Add specific properties for FD if needed by the component
         interestRate: acc.interestRate?.toString(),
         maturityDate: acc.maturityDate,
+        status: acc.status,
       };
     });
   }, [user.accounts]);

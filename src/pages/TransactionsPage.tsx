@@ -24,23 +24,29 @@ import {
 import { ArrowUpRight, ArrowDownLeft, ChevronLeft, ChevronRight, Filter, X, Search, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const formatDate = (dateString: string | Date, language: 'en' | 'ru'): string => {
-  if (!dateString) return 'N/A';
+const formatDate = (dateString: string | Date, language: 'en' | 'ru'): { date: string; time: string } => {
+  if (!dateString) return { date: 'N/A', time: '' };
   try {
     const date = new Date(dateString);
     const locale = language === 'ru' ? 'ru-RU' : 'en-GB';
     
-    // Format date and time together in a compact format
-    return new Intl.DateTimeFormat(locale, {
+    // Format date in a compact format
+    const dateStr = new Intl.DateTimeFormat(locale, {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
+    }).format(date);
+    
+    // Format time in a compact format
+    const timeStr = new Intl.DateTimeFormat(locale, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: language === 'en'
     }).format(date);
+    
+    return { date: dateStr, time: timeStr };
   } catch (error) {
-    return 'N/A';
+    return { date: 'N/A', time: '' };
   }
 };
 
@@ -299,8 +305,15 @@ export const TransactionsPage = () => {
                         key={transaction.id}
                         className="hover:bg-gray-50 transition-colors"
                       >
-                        <TableCell className="font-medium text-gray-700 whitespace-nowrap text-sm">
-                          {formatDate(transaction.date, language)}
+                        <TableCell className="font-medium text-gray-700 text-sm">
+                          <div className="flex flex-col">
+                            <span className="text-nmb-charcoal font-semibold">
+                              {formatDate(transaction.date, language).date}
+                            </span>
+                            <span className="text-gray-500 text-xs mt-0.5">
+                              {formatDate(transaction.date, language).time}
+                            </span>
+                          </div>
                         </TableCell>
                         <TableCell className="font-medium text-nmb-charcoal">
                           {transaction.description}

@@ -63,6 +63,8 @@ export interface Transaction {
     accountId?: string; // Existing
     cardId?: string; // Existing
     merchant?: string; // Existing
+    balance?: number; // Balance after transaction
+    referenceId?: string; // Reference ID for transaction (e.g., txn-1769427869697)
 }
 
 export interface Investment {

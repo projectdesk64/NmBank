@@ -3,6 +3,7 @@ import { useUser } from '@/contexts/UserContext';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatCurrency } from '@/utils/formatters';
+import { Transaction } from '@/types';
 import {
   Table,
   TableBody,
@@ -28,10 +29,15 @@ const formatDate = (dateString: string | Date, language: 'en' | 'ru'): string =>
   try {
     const date = new Date(dateString);
     const locale = language === 'ru' ? 'ru-RU' : 'en-GB';
+    
+    // Format date and time together in a compact format
     return new Intl.DateTimeFormat(locale, {
       day: 'numeric',
       month: 'short',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: language === 'en'
     }).format(date);
   } catch (error) {
     return 'N/A';
@@ -57,27 +63,51 @@ export const TransactionsPage = () => {
     setCurrentPage(1);
   }, [searchQuery, statusFilter, typeFilter, dateFilter]);
 
-  // Calculate Running Balance Dynamically
+  // Calculate Running Balance Dynamically (or use balance field for new transactions)
   const transactionsWithBalance = useMemo(() => {
-    // 1. Create a copy and sort Oldest -> Newest
-    const sortedAsc = [...user.transactions].sort((a, b) =>
+    // Check if transaction is a new January 2026 transaction by ID pattern
+    const isNewTransaction = (t: Transaction) => {
+      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_');
+    };
+
+    // Separate new transactions from old transactions
+    const newTransactions = user.transactions.filter(isNewTransaction);
+    const oldTransactions = user.transactions.filter(t => !isNewTransaction(t));
+
+    // 1. For new transactions, preserve exact order from mock data (already newest first: Jan 26 before Jan 24)
+    //    Don't sort or reverse - keep them in the exact order they appear in mockData.ts
+    
+    // 2. For old transactions, first sort Oldest -> Newest to calculate balances correctly
+    const sortedOldAsc = oldTransactions.sort((a, b) =>
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
     let currentBalance = 0;
 
-    // 2. Calculate balance for each row
-    const withBalance = sortedAsc.map(t => {
+    // 3. Calculate balance for old transactions (must be done chronologically)
+    const oldTransactionsWithBalance = sortedOldAsc.map(t => {
       if (t.type === 'credit') {
         currentBalance += t.amount;
       } else {
         currentBalance -= t.amount;
       }
-      return { ...t, runningBalance: currentBalance };
+      return { ...t, runningBalance: currentBalance, isNewTransaction: false };
     });
 
-    // 3. Reverse back to Newest -> Oldest for display
-    return withBalance.reverse();
+    // 4. Reverse old transactions to show newest first
+    const oldTransactionsDesc = oldTransactionsWithBalance.reverse();
+
+    // 5. Process new transactions (use balance field directly, preserve order)
+    const newTransactionsWithBalance = newTransactions.map(t => {
+      return { 
+        ...t, 
+        runningBalance: t.balance !== undefined && t.balance !== null ? t.balance : 0, 
+        isNewTransaction: true 
+      };
+    });
+
+    // 6. Combine: new transactions first (in exact order from mock data), then old transactions (newest first)
+    return [...newTransactionsWithBalance, ...oldTransactionsDesc];
   }, [user.transactions]);
 
   // Filter Logic
@@ -269,7 +299,7 @@ export const TransactionsPage = () => {
                         key={transaction.id}
                         className="hover:bg-gray-50 transition-colors"
                       >
-                        <TableCell className="font-medium text-gray-700">
+                        <TableCell className="font-medium text-gray-700 whitespace-nowrap text-sm">
                           {formatDate(transaction.date, language)}
                         </TableCell>
                         <TableCell className="font-medium text-nmb-charcoal">
@@ -301,12 +331,16 @@ export const TransactionsPage = () => {
                             transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
                           )}>
                             {transaction.type === 'credit' ? '+' : '-'}
-                            {formatCurrency(Math.abs(transaction.amount))}
+                            {formatCurrency(
+                              (transaction as any).isNewTransaction 
+                                ? Math.abs(transaction.amount) / 100 
+                                : Math.abs(transaction.amount)
+                            )}
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
                           <span className="text-sm font-bold text-gray-900 font-mono tabular-nums">
-                            {formattedBalance(transaction.runningBalance)}
+                            {formattedBalance(transaction.runningBalance, (transaction as any).isNewTransaction)}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -388,7 +422,10 @@ export const TransactionsPage = () => {
                 {formatCurrency(
                   transactionsWithBalance
                     .filter(tx => tx.type === 'credit')
-                    .reduce((sum, tx) => sum + Math.abs(tx.amount), 0)
+                    .reduce((sum, tx) => {
+                      const amount = (tx as any).isNewTransaction ? Math.abs(tx.amount) / 100 : Math.abs(tx.amount);
+                      return sum + amount;
+                    }, 0)
                 )}
               </p>
             </div>
@@ -398,7 +435,10 @@ export const TransactionsPage = () => {
                 {formatCurrency(
                   transactionsWithBalance
                     .filter(tx => tx.type === 'debit')
-                    .reduce((sum, tx) => sum + Math.abs(tx.amount), 0)
+                    .reduce((sum, tx) => {
+                      const amount = (tx as any).isNewTransaction ? Math.abs(tx.amount) / 100 : Math.abs(tx.amount);
+                      return sum + amount;
+                    }, 0)
                 )}
               </p>
             </div>
@@ -410,6 +450,15 @@ export const TransactionsPage = () => {
 };
 
 // Helper for formatted balance display
-const formattedBalance = (amount: number) => {
-  return amount.toLocaleString('ru-RU') + ' ₽';
+const formattedBalance = (amount: number, isNewTransaction?: boolean) => {
+  // For new transactions, balance is stored in kopecks, convert to rubles (divide by 100)
+  // For old transactions, balance is already in rubles
+  const rubles = isNewTransaction ? amount / 100 : amount;
+  
+  // Format with Russian locale: spaces for thousands, comma for decimal
+  // Allow 1-2 decimal places (don't force trailing zeros)
+  return rubles.toLocaleString('ru-RU', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }) + ' ₽';
 };

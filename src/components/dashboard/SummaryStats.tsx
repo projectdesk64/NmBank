@@ -39,15 +39,15 @@ const StatCard = memo(({ title, amount, change, changeType, icon: Icon, borderCo
       borderColors[borderColor],
       className
     )}>
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
+      <div className="flex items-start justify-between mb-4 gap-4">
+        <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-3xl lg:text-4xl font-heading font-bold text-nmb-charcoal tabular-nums">
+          <p className="text-2xl lg:text-3xl font-heading font-bold text-nmb-charcoal tabular-nums break-words leading-tight">
             {amount}
           </p>
         </div>
         <div className={cn(
-          "w-12 h-12 rounded-xl flex items-center justify-center",
+          "w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0",
           borderColor === 'blue' && 'bg-blue-50',
           borderColor === 'orange' && 'bg-orange-50',
           borderColor === 'maroon' && 'bg-red-50'

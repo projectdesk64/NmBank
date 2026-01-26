@@ -105,21 +105,37 @@ export const Dashboard = () => {
 
   // Calculate live balance from transaction history
   const liveBalance = useMemo(() => {
+    // Check if transaction is a new January 2026 transaction by ID pattern
+    const isNewTransaction = (t: typeof user.transactions[0]) => {
+      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_');
+    };
+
     // Sort Oldest -> Newest to simulate history (optional, but good for accuracy)
     const sorted = [...user.transactions].sort((a, b) =>
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
     // Replay transactions to get final sum
+    // For new transactions, amounts are in kopecks (divide by 100)
+    // For old transactions, amounts are already in rubles
     return sorted.reduce((acc, t) => {
-      const amount = typeof t.amount === 'string' ? parseFloat(t.amount) : t.amount;
+      let amount = typeof t.amount === 'string' ? parseFloat(t.amount) : t.amount;
+      // Convert kopecks to rubles for new transactions
+      if (isNewTransaction(t)) {
+        amount = amount / 100;
+      }
       return t.type === 'credit' ? acc + amount : acc - amount;
     }, 0);
   }, [user.transactions]);
 
   const formatIndianRuble = (amount: number) => {
-    // Format using Indian locale for the commas, then append the Ruble symbol
-    return amount.toLocaleString('en-IN') + ' ₽';
+    // Format using Indian locale for the commas (lakhs/crores format)
+    // en-IN locale uses period for decimal separator, which matches desired format
+    const formatted = amount.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    return formatted + ' ₽';
   };
 
   // Calculate totals from context data
@@ -141,18 +157,45 @@ export const Dashboard = () => {
 
   // Get recent transactions from context (first 5)
   const mockRecentTransactions = useMemo(() => {
-    return [...user.transactions]
+    // Check if transaction is a new January 2026 transaction by ID pattern
+    const isNewTransaction = (t: typeof user.transactions[0]) => {
+      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_');
+    };
+
+    // Generate referenceId if not provided in transaction data
+    const generateReferenceId = (index: number) => {
+      // Fallback: Generate a consistent ID based on transaction index
+      // Base timestamp: 1769427869697, increment by index
+      const baseTimestamp = 1769427869697;
+      const transactionIndex = user.transactions.length - index; // Reverse index for newest first
+      return `txn-${baseTimestamp + transactionIndex}`;
+    };
+
+    const sortedTransactions = [...user.transactions]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5)
-      .map(tx => ({
+      .slice(0, 5);
+    
+    // Find original index in full transactions array for fallback ID generation
+    const getOriginalIndex = (tx: typeof user.transactions[0]) => {
+      return user.transactions.findIndex(t => t.id === tx.id);
+    };
+
+    return sortedTransactions.map((tx) => {
+      // Use date directly from transaction (should already include time if provided)
+      const originalIndex = getOriginalIndex(tx);
+      
+      return {
         id: tx.id,
         description: tx.description,
-        amount: tx.amount,
+        // For new transactions, divide by 100 (kopecks to rubles)
+        amount: isNewTransaction(tx) ? tx.amount / 100 : tx.amount,
         date: formatTransactionDateFromISO(tx.date, language),
         type: tx.type as 'credit' | 'debit',
-        referenceId: tx.id,
+        // Use referenceId from transaction if provided, otherwise generate one
+        referenceId: tx.referenceId || generateReferenceId(originalIndex),
         category: tx.category,
-      }));
+      };
+    });
   }, [user.transactions, language]);
 
   // Removed Firebase subscription effect

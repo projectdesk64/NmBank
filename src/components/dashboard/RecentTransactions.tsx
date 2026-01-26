@@ -7,6 +7,14 @@ import { cn } from '@/lib/utils';
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatCurrency } from '@/utils/formatters';
 
+// Helper to format amount with ruble symbol (for dashboard display)
+const formatAmount = (amount: number): string => {
+  return amount.toLocaleString('ru-RU', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }) + ' ₽';
+};
+
 export interface Transaction {
   id: string;
   description: string;
@@ -145,7 +153,7 @@ export const RecentTransactions = memo(({ data, loading = false }: RecentTransac
                     "text-lg font-bold font-mono tabular-nums",
                     transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
                   )}>
-                    {transaction.type === 'credit' ? '+' : '-'} {formatCurrency(Math.abs(transaction.amount))}
+                    {transaction.type === 'credit' ? '+' : '-'}{formatAmount(Math.abs(transaction.amount))}
                   </p>
                 </div>
 
@@ -163,7 +171,7 @@ export const RecentTransactions = memo(({ data, loading = false }: RecentTransac
           <DialogHeader>
             <DialogTitle>{t.dashboard.recentTransactions.transactionDetails}</DialogTitle>
             <DialogDescription>
-              {t.dashboard.recentTransactions.referenceId} {selectedTransaction?.referenceId}
+              {t.dashboard.recentTransactions.referenceId}: {selectedTransaction?.referenceId || selectedTransaction?.id}
             </DialogDescription>
           </DialogHeader>
           {selectedTransaction && (
@@ -178,7 +186,7 @@ export const RecentTransactions = memo(({ data, loading = false }: RecentTransac
                   "text-2xl font-bold font-mono tabular-nums",
                   selectedTransaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
                 )}>
-                  {selectedTransaction.type === 'credit' ? '+' : '-'} {formatCurrency(Math.abs(selectedTransaction.amount))}
+                  {selectedTransaction.type === 'credit' ? '+' : '-'}{formatAmount(Math.abs(selectedTransaction.amount))}
                 </p>
               </div>
               <div>
@@ -193,7 +201,7 @@ export const RecentTransactions = memo(({ data, loading = false }: RecentTransac
               )}
               <div>
                 <p className="text-sm text-gray-600 mb-1">{t.dashboard.recentTransactions.referenceId}</p>
-                <p className="font-mono text-sm">{selectedTransaction.referenceId}</p>
+                <p className="font-mono text-sm">{selectedTransaction.referenceId || selectedTransaction.id}</p>
               </div>
             </div>
           )}

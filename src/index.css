@@ -65,34 +65,57 @@
     --accent-foreground: 0 0% 100%;
   }
 
-  * {
+  *,
+  *::before,
+  *::after {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   html {
-    /* Reserve space for scrollbar to prevent layout shift */
-    scrollbar-gutter: stable;
+    /* Prevent horizontal overflow */
+    overflow-x: hidden !important;
+    /* Only body should have vertical scrollbar, not html - force visible to prevent double scrollbars */
+    overflow-y: visible !important;
+    width: 100%;
+    /* Don't constrain height - let content determine it */
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-family: "Inter", sans-serif;
-    /* Fallback for browsers that don't support scrollbar-gutter */
-    overflow-y: scroll !important;
-    /* Ensure scrollbar is always visible - this will be overridden by JS but we'll fight it */
+    /* Single scrollbar - only show when content overflows */
+    overflow-y: auto !important;
+    /* Prevent horizontal overflow */
+    overflow-x: hidden !important;
+    width: 100%;
+    max-width: 100%;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Ensure root container respects viewport - no overflow, let body handle scrolling */
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-y: visible;
+    height: auto;
+    min-height: 100vh;
   }
   
   /* Prevent Select dropdown from hiding scrollbar - override Radix UI scroll lock */
-  body[data-scroll-locked],
-  body:not(.dialog-open) {
+  body[data-scroll-locked] {
     overflow-y: scroll !important;
+    overflow-x: hidden !important;
     padding-right: 0 !important;
     margin-right: 0 !important;
   }
   
-  /* Also target html element in case Radix modifies it */
+  /* Also target html element in case Radix modifies it - but don't create scrollbar */
   html[data-scroll-locked] {
-    overflow-y: scroll !important;
+    overflow-y: visible !important;
+    overflow-x: hidden !important;
   }
 
   .tabular-nums {
@@ -152,5 +175,23 @@
   /* Prevent scrollbar glitch when dialogs open */
   body.dialog-open {
     overflow: hidden !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Prevent horizontal overflow from common elements */
+  img, video, iframe, embed, object {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Ensure containers respect viewport width */
+  .container, [class*="container"] {
+    max-width: 100%;
+  }
+
+  /* Prevent tables from causing horizontal overflow */
+  table {
+    width: 100%;
+    table-layout: auto;
   }
 }

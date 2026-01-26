@@ -20,12 +20,13 @@ const Select = React.forwardRef<
       if (document.documentElement.hasAttribute('data-scroll-locked')) {
         document.documentElement.removeAttribute('data-scroll-locked');
       }
-      // Force scrollbar to remain visible
+      // Force scrollbar to remain visible on body only
       if (document.body.style.overflow === 'hidden' || document.body.style.overflow === '') {
         document.body.style.overflow = 'scroll';
       }
+      // Don't set overflow on html - only body should scroll to prevent double scrollbars
       if (document.documentElement.style.overflow === 'hidden' || document.documentElement.style.overflow === '') {
-        document.documentElement.style.overflow = 'scroll';
+        document.documentElement.style.overflow = 'visible';
       }
     };
     
@@ -125,13 +126,14 @@ const SelectContent = React.forwardRef<
         document.documentElement.removeAttribute('data-scroll-locked');
       }
       
-      // Aggressively prevent overflow:hidden on both body and html
+      // Aggressively prevent overflow:hidden on body only
       if (document.body.style.overflow === 'hidden' || document.body.style.overflow === '') {
         // Restore to original or use 'scroll' to ensure scrollbar is always visible
         document.body.style.overflow = originalBodyOverflowStyle || originalOverflow || 'scroll';
       }
+      // Don't set overflow on html - only body should scroll to prevent double scrollbars
       if (document.documentElement.style.overflow === 'hidden' || document.documentElement.style.overflow === '') {
-        document.documentElement.style.overflow = 'scroll';
+        document.documentElement.style.overflow = 'visible';
       }
       
       // Prevent padding-right changes that might affect layout

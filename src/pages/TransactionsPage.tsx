@@ -275,7 +275,7 @@ export const TransactionsPage = () => {
         </div>
 
         {/* Transactions Table */}
-        <div className="bg-white rounded-2xl shadow-large overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-large overflow-hidden w-full">
           {filteredTransactions.length === 0 ? (
             <div className="text-center py-16">
               <Filter className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -286,8 +286,8 @@ export const TransactionsPage = () => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <Table>
+              <div className="w-full overflow-hidden">
+                <Table className="w-full table-auto">
                   <TableHeader>
                     <TableRow className="bg-gray-50">
                       <TableHead className="font-semibold text-nmb-charcoal">Date</TableHead>
@@ -305,7 +305,7 @@ export const TransactionsPage = () => {
                         key={transaction.id}
                         className="hover:bg-gray-50 transition-colors"
                       >
-                        <TableCell className="font-medium text-gray-700 text-sm">
+                        <TableCell className="font-medium text-gray-700 text-sm whitespace-nowrap">
                           <div className="flex flex-col">
                             <span className="text-nmb-charcoal font-semibold">
                               {formatDate(transaction.date, language).date}
@@ -315,20 +315,22 @@ export const TransactionsPage = () => {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="font-medium text-nmb-charcoal">
-                          {transaction.description}
+                        <TableCell className="font-medium text-nmb-charcoal max-w-[250px]">
+                          <div className="truncate" title={transaction.description}>
+                            {transaction.description}
+                          </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
                             {transaction.category || 'Other'}
                           </span>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             {transaction.type === 'credit' ? (
-                              <ArrowDownLeft className="h-4 w-4 text-green-600" />
+                              <ArrowDownLeft className="h-4 w-4 text-green-600 flex-shrink-0" />
                             ) : (
-                              <ArrowUpRight className="h-4 w-4 text-red-600" />
+                              <ArrowUpRight className="h-4 w-4 text-red-600 flex-shrink-0" />
                             )}
                             <span className={cn(
                               "text-sm font-medium capitalize",
@@ -338,9 +340,9 @@ export const TransactionsPage = () => {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right whitespace-nowrap">
                           <span className={cn(
-                            "text-lg font-bold font-mono tabular-nums",
+                            "text-base font-bold font-mono tabular-nums",
                             transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
                           )}>
                             {transaction.type === 'credit' ? '+' : '-'}
@@ -351,12 +353,12 @@ export const TransactionsPage = () => {
                             )}
                           </span>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <span className="text-sm font-bold text-gray-900 font-mono tabular-nums">
+                        <TableCell className="text-right whitespace-nowrap">
+                          <span className="text-base font-bold text-gray-900 font-mono tabular-nums">
                             {formattedBalance(transaction.runningBalance, (transaction as any).isNewTransaction)}
                           </span>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           <span className={cn(
                             "px-2 py-1 text-xs font-medium rounded-full",
                             transaction.status === 'success' || transaction.status === 'completed'

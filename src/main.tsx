@@ -122,10 +122,12 @@ const preserveScrollbar = () => {
   // Only prevent overflow:hidden if not a dialog (dialogs should lock scroll)
   if (!document.body.classList.contains('dialog-open')) {
     if (document.body.style.overflow === 'hidden') {
-      document.body.style.overflow = 'scroll';
+      document.body.style.overflow = 'auto';
     }
+    // Don't set overflow on html - only body should scroll
+    // This prevents double scrollbars
     if (document.documentElement.style.overflow === 'hidden') {
-      document.documentElement.style.overflow = 'scroll';
+      document.documentElement.style.overflow = 'visible';
     }
   }
 };

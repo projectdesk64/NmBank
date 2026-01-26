@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/hooks/useLanguage';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 
 interface Profile {
   name?: string;
@@ -35,6 +38,71 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
   const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [realtimeProfile, setRealtimeProfile] = useState<Profile | null>(profile);
+  const [realtimeUserName, setRealtimeUserName] = useState<string | undefined>(userName);
+  const [realtimeUserPhotoURL, setRealtimeUserPhotoURL] = useState<string | undefined>(userPhotoURL);
+
+  // Real-time Firestore listener for profile updates
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let unsubscribeUser: (() => void) | null = null;
+    let unsubscribeProfile: (() => void) | null = null;
+
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        // Update Firebase Auth user data
+        setRealtimeUserName(currentUser.displayName || undefined);
+        setRealtimeUserPhotoURL(currentUser.photoURL || undefined);
+
+        // Subscribe to real-time profile updates from Firestore
+        const userRef = doc(db, 'users', currentUser.uid);
+        unsubscribeProfile = onSnapshot(
+          userRef,
+          (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              const profileData = data?.profile || null;
+              setRealtimeProfile(profileData);
+              if (import.meta.env.DEV && profileData?.name) {
+                console.log('Real-time profile updated:', profileData.name);
+              }
+            } else {
+              setRealtimeProfile(null);
+            }
+          },
+          (error) => {
+            if (import.meta.env.DEV) {
+              console.error('Error fetching real-time profile:', error);
+            }
+          }
+        );
+      } else {
+        setRealtimeProfile(null);
+        setRealtimeUserName(undefined);
+        setRealtimeUserPhotoURL(undefined);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
+      }
+      if (unsubscribeUser) {
+        unsubscribeUser();
+      }
+    };
+  }, [isOpen]);
+
+  // Sync props with real-time data when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setRealtimeProfile(profile);
+      setRealtimeUserName(userName);
+      setRealtimeUserPhotoURL(userPhotoURL);
+    }
+  }, [isOpen, profile, userName, userPhotoURL]);
 
   // Handle scroll locking and scrollbar compensation
   useEffect(() => {
@@ -64,10 +132,15 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Use real-time data if available, otherwise fall back to props
+  const currentProfile = realtimeProfile || profile;
+  const currentUserName = realtimeUserName || userName;
+  const currentUserPhotoURL = realtimeUserPhotoURL || userPhotoURL;
+
   const handleCopyCustomerId = async () => {
-    if (profile?.customerId) {
+    if (currentProfile?.customerId) {
       try {
-        await navigator.clipboard.writeText(profile.customerId);
+        await navigator.clipboard.writeText(currentProfile.customerId);
         setCopied(true);
         // Clear existing timeout
         if (copyTimeoutRef.current) {
@@ -86,9 +159,13 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
     }
   };
 
-  const displayName = profile?.name || userName || 'User';
-  const displayEmail = profile?.email || '';
-  const displayPhone = profile?.phone || '';
+  // Prioritize profile.name from Firestore (e.g., "Shravan Banerjee")
+  // Then fall back to Firebase Auth displayName, then 'User'
+  const profileName = currentProfile?.name?.trim() || '';
+  const firebaseDisplayName = currentUserName?.trim() || '';
+  const displayName = profileName || firebaseDisplayName || 'User';
+  const displayEmail = currentProfile?.email || '';
+  const displayPhone = currentProfile?.phone || '';
 
   return (
     <>
@@ -124,7 +201,7 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
               <div className="border-2 border-nmb-maroon/20 rounded-full p-0.5">
                 <UserAvatar
                   name={displayName}
-                  image={userPhotoURL || (profile as any)?.image}
+                  image={currentUserPhotoURL || (currentProfile as any)?.image}
                   size="lg"
                 />
               </div>
@@ -140,14 +217,14 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
             </div>
 
             {/* Customer ID Section */}
-            {profile?.customerId && (
+            {currentProfile?.customerId && (
               <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 overflow-hidden">
                 <label className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1.5 block">
                   {t.dashboard.customerDetails.customerId}
                 </label>
                 <div className="flex items-center justify-between gap-2 min-w-0">
                   <span className="font-mono text-sm sm:text-base font-semibold text-nmb-charcoal truncate min-w-0">
-                    {profile.customerId}
+                    {currentProfile.customerId}
                   </span>
                   <button
                     onClick={handleCopyCustomerId}

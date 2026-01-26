@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, onSnapshot, updateDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, MapPin, Save } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface Profile {
   name?: string;
@@ -12,8 +13,6 @@ interface Profile {
   phone?: string;
   address?: string;
 }
-
-import { User as FirebaseUser } from 'firebase/auth';
 
 export const Settings = () => {
   const navigate = useNavigate();
@@ -51,21 +50,30 @@ export const Settings = () => {
       
       // Subscribe to user document
       const userRef = doc(db, 'users', currentUser.uid);
-      unsubscribeUser = onSnapshot(userRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          const profile = data.profile || {};
-          setFormData({
-            name: profile.name || '',
-            email: profile.email || '',
-            phone: profile.phone || '',
-            address: profile.address || '',
-          });
-          setLoading(false);
-        } else {
+      unsubscribeUser = onSnapshot(
+        userRef,
+        (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            const profile = data.profile || {};
+            setFormData({
+              name: profile.name || '',
+              email: profile.email || '',
+              phone: profile.phone || '',
+              address: profile.address || '',
+            });
+            setLoading(false);
+          } else {
+            setLoading(false);
+          }
+        },
+        (error) => {
+          if (import.meta.env.DEV) {
+            console.error('Error fetching profile:', error);
+          }
           setLoading(false);
         }
-      });
+      );
     });
 
     return () => {
@@ -260,4 +268,6 @@ export const Settings = () => {
     </DashboardLayout>
   );
 };
+
+export default Settings;
 

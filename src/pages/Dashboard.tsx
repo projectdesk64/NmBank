@@ -42,23 +42,35 @@ const formatTransactionDate = (dateStr: string | null | undefined, language: 'en
 };
 
 // Format transaction date from ISO string (for mock data)
+// Dynamically compares with current date - shows "Today" only if transaction date matches today's date
 const formatTransactionDateFromISO = (dateString: string, language: 'en' | 'ru'): string => {
   try {
     const date = new Date(dateString);
     const now = new Date();
+    
+    // Get today's date at midnight for accurate comparison
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Get yesterday's date for comparison
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Get transaction date at midnight (ignore time for date comparison)
     const transactionDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
     const locale = language === 'ru' ? 'ru-RU' : 'en-IN';
 
+    // Compare dates (not times) - this ensures "Today" only shows when dates actually match
     if (transactionDate.getTime() === today.getTime()) {
+      // Transaction is from today - show "Today"
       const todayText = language === 'ru' ? 'Сегодня' : 'Today';
       return `${todayText}, ${date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: language === 'en' })}`;
     } else if (transactionDate.getTime() === yesterday.getTime()) {
+      // Transaction is from yesterday - show "Yesterday"
       const yesterdayText = language === 'ru' ? 'Вчера' : 'Yesterday';
       return `${yesterdayText}, ${date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: language === 'en' })}`;
     } else {
+      // Transaction is from another day - show full date (e.g., "26 Jan 2026, 05:14 PM")
       return new Intl.DateTimeFormat(locale, {
         day: 'numeric',
         month: 'short',

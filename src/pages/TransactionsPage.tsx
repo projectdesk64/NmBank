@@ -29,21 +29,21 @@ const formatDate = (dateString: string | Date, language: 'en' | 'ru'): { date: s
   try {
     const date = new Date(dateString);
     const locale = language === 'ru' ? 'ru-RU' : 'en-GB';
-    
+
     // Format date in a compact format
     const dateStr = new Intl.DateTimeFormat(locale, {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
     }).format(date);
-    
+
     // Format time in a compact format
     const timeStr = new Intl.DateTimeFormat(locale, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: language === 'en'
     }).format(date);
-    
+
     return { date: dateStr, time: timeStr };
   } catch (error) {
     return { date: 'N/A', time: '' };
@@ -71,9 +71,9 @@ export const TransactionsPage = () => {
 
   // Calculate Running Balance Dynamically (or use balance field for new transactions)
   const transactionsWithBalance = useMemo(() => {
-    // Check if transaction is a new January 2026 transaction by ID pattern
+    // Check if transaction is a new January/February 2026 transaction by ID pattern
     const isNewTransaction = (t: Transaction) => {
-      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_');
+      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_') || t.id?.startsWith('t_feb03_2026_');
     };
 
     // Separate new transactions from old transactions
@@ -82,7 +82,7 @@ export const TransactionsPage = () => {
 
     // 1. For new transactions, preserve exact order from mock data (already newest first: Jan 26 before Jan 24)
     //    Don't sort or reverse - keep them in the exact order they appear in mockData.ts
-    
+
     // 2. For old transactions, first sort Oldest -> Newest to calculate balances correctly
     const sortedOldAsc = oldTransactions.sort((a, b) =>
       new Date(a.date).getTime() - new Date(b.date).getTime()
@@ -105,10 +105,10 @@ export const TransactionsPage = () => {
 
     // 5. Process new transactions (use balance field directly, preserve order)
     const newTransactionsWithBalance = newTransactions.map(t => {
-      return { 
-        ...t, 
-        runningBalance: t.balance !== undefined && t.balance !== null ? t.balance : 0, 
-        isNewTransaction: true 
+      return {
+        ...t,
+        runningBalance: t.balance !== undefined && t.balance !== null ? t.balance : 0,
+        isNewTransaction: true
       };
     });
 
@@ -347,8 +347,8 @@ export const TransactionsPage = () => {
                           )}>
                             {transaction.type === 'credit' ? '+' : '-'}
                             {formatCurrency(
-                              (transaction as any).isNewTransaction 
-                                ? Math.abs(transaction.amount) / 100 
+                              (transaction as any).isNewTransaction
+                                ? Math.abs(transaction.amount) / 100
                                 : Math.abs(transaction.amount)
                             )}
                           </span>
@@ -469,7 +469,7 @@ const formattedBalance = (amount: number, isNewTransaction?: boolean) => {
   // For new transactions, balance is stored in kopecks, convert to rubles (divide by 100)
   // For old transactions, balance is already in rubles
   const rubles = isNewTransaction ? amount / 100 : amount;
-  
+
   // Format with Russian locale: spaces for thousands, comma for decimal
   // Allow 1-2 decimal places (don't force trailing zeros)
   return rubles.toLocaleString('ru-RU', {

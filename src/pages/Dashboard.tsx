@@ -47,17 +47,17 @@ const formatTransactionDateFromISO = (dateString: string, language: 'en' | 'ru')
   try {
     const date = new Date(dateString);
     const now = new Date();
-    
+
     // Get today's date at midnight for accurate comparison
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+
     // Get yesterday's date for comparison
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     // Get transaction date at midnight (ignore time for date comparison)
     const transactionDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
+
     const locale = language === 'ru' ? 'ru-RU' : 'en-IN';
 
     // Compare dates (not times) - this ensures "Today" only shows when dates actually match
@@ -119,7 +119,7 @@ export const Dashboard = () => {
   const liveBalance = useMemo(() => {
     // Check if transaction is a new January 2026 transaction by ID pattern
     const isNewTransaction = (t: typeof user.transactions[0]) => {
-      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_');
+      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_') || t.id?.startsWith('t_feb03_2026_');
     };
 
     // Sort Oldest -> Newest to simulate history (optional, but good for accuracy)
@@ -171,7 +171,7 @@ export const Dashboard = () => {
   const mockRecentTransactions = useMemo(() => {
     // Check if transaction is a new January 2026 transaction by ID pattern
     const isNewTransaction = (t: typeof user.transactions[0]) => {
-      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_');
+      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_') || t.id?.startsWith('t_feb03_2026_');
     };
 
     // Generate referenceId if not provided in transaction data
@@ -186,7 +186,7 @@ export const Dashboard = () => {
     const sortedTransactions = [...user.transactions]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5);
-    
+
     // Find original index in full transactions array for fallback ID generation
     const getOriginalIndex = (tx: typeof user.transactions[0]) => {
       return user.transactions.findIndex(t => t.id === tx.id);
@@ -195,7 +195,7 @@ export const Dashboard = () => {
     return sortedTransactions.map((tx) => {
       // Use date directly from transaction (should already include time if provided)
       const originalIndex = getOriginalIndex(tx);
-      
+
       return {
         id: tx.id,
         description: tx.description,

@@ -17,6 +17,30 @@ export const spendingStats: MonthlySpending = {
 
 // --- 2. Centralized Transactions (Mix of High Value & Daily Use) ---
 export const transactions: Transaction[] = [
+  // --- February 2026 Transfers ---
+  {
+    id: 't_feb03_2026_2',
+    date: '2026-02-03T14:32:00',
+    description: 'Transfer to 34819616337',
+    amount: 65848202,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1307589413384,
+    referenceId: 'txn-1769427869728'
+  },
+  {
+    id: 't_feb03_2026_1',
+    date: '2026-02-03T14:28:00',
+    description: 'Transfer to 2406262157371913',
+    amount: 65848202,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1307655261586,
+    referenceId: 'txn-1769427869727'
+  },
+
   // --- January 2026 Transfers ---
   {
     id: 't_jan26_2026_1',

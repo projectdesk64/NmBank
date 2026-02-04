@@ -35,14 +35,14 @@ const StatCard = memo(({ title, amount, change, changeType, icon: Icon, borderCo
 
   return (
     <div className={cn(
-      "bg-white rounded-2xl p-7 border-t-5 shadow-large hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 hover:-translate-y-1",
+      "bg-white rounded-2xl p-5 border-t-5 shadow-large hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 hover:-translate-y-1",
       borderColors[borderColor],
       className
     )}>
-      <div className="flex items-start justify-between mb-4 gap-4">
-        <div className="flex-1 min-w-0">
+      <div className="flex items-start justify-between mb-3 gap-3">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-2xl lg:text-3xl font-heading font-bold text-nmb-charcoal tabular-nums break-words leading-tight">
+          <p className="text-xl lg:text-2xl font-heading font-bold text-nmb-charcoal tabular-nums break-all leading-tight">
             {amount}
           </p>
         </div>
@@ -95,7 +95,7 @@ export const SummaryStats = memo(({
   spendingChange = 0,
   loading = false
 }: SummaryStatsProps) => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const spendingChangePercent = Math.abs(spendingChange);
   const spendingChangeType = spendingChange >= 0 ? 'positive' : 'negative';
 

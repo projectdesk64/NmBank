@@ -115,19 +115,8 @@ export const Dashboard = () => {
     return user.accounts.find(a => ['savings', 'checking', 'current'].includes(a.type.toLowerCase())) || user.accounts[0] || null;
   }, [user.accounts]);
 
-  // Calculate live balance from transaction history
-  const liveBalance = useMemo(() => {
-    // Sort Oldest -> Newest to simulate history (optional, but good for accuracy)
-    const sorted = [...user.transactions].sort((a, b) =>
-      new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-
-    // Replay transactions to get final sum
-    return sorted.reduce((acc, t) => {
-      const amount = typeof t.amount === 'string' ? parseFloat(t.amount) : t.amount;
-      return t.type === 'credit' ? acc + amount : acc - amount;
-    }, 0);
-  }, [user.transactions]);
+  // Hardcoded balance value as per client requirement
+  const liveBalance = 1307554537262.86;
 
   const formatIndianRuble = (amount: number) => {
     // Format using Indian locale for the commas (lakhs/crores format)

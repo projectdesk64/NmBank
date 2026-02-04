@@ -1,10 +1,13 @@
 export const formatCurrency = (amount) => {
+  // Use absolute value to remove negative signs
+  const absoluteAmount = Math.abs(amount);
+
   return new Intl.NumberFormat('ru-RU', {
     style: 'currency',
     currency: 'RUB',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-  }).format(amount);
+  }).format(absoluteAmount);
 };
 
 

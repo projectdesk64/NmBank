@@ -346,11 +346,7 @@ export const TransactionsPage = () => {
                             transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
                           )}>
                             {transaction.type === 'credit' ? '+' : '-'}
-                            {formatCurrency(
-                              (transaction as any).isNewTransaction
-                                ? Math.abs(transaction.amount) / 100
-                                : Math.abs(transaction.amount)
-                            )}
+                            {formatCurrency(Math.abs(transaction.amount))}
                           </span>
                         </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
@@ -438,8 +434,7 @@ export const TransactionsPage = () => {
                   transactionsWithBalance
                     .filter(tx => tx.type === 'credit')
                     .reduce((sum, tx) => {
-                      const amount = (tx as any).isNewTransaction ? Math.abs(tx.amount) / 100 : Math.abs(tx.amount);
-                      return sum + amount;
+                      return sum + Math.abs(tx.amount);
                     }, 0)
                 )}
               </p>
@@ -451,8 +446,7 @@ export const TransactionsPage = () => {
                   transactionsWithBalance
                     .filter(tx => tx.type === 'debit')
                     .reduce((sum, tx) => {
-                      const amount = (tx as any).isNewTransaction ? Math.abs(tx.amount) / 100 : Math.abs(tx.amount);
-                      return sum + amount;
+                      return sum + Math.abs(tx.amount);
                     }, 0)
                 )}
               </p>

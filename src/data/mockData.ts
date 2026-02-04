@@ -3,9 +3,8 @@ import {
 } from '../types';
 export * from '../types';
 
-// --- 1. Centralized Spending Statistics (Matches High Net Worth) ---
 export const spendingStats: MonthlySpending = {
-  total: 4500000, // 4.5 Million RUB monthly spend
+  total: 4500000,
   byCategory: [
     { category: 'Housing', amount: 2000000, color: '#FF6B00' },
     { category: 'Transport', amount: 1000000, color: '#3B82F6' },
@@ -15,13 +14,12 @@ export const spendingStats: MonthlySpending = {
   ]
 };
 
-// --- 2. Centralized Transactions (Mix of High Value & Daily Use) ---
 export const transactions: Transaction[] = [
   {
     id: 't_jan28_2026_2',
     date: '2026-01-28T14:32:00',
     description: 'Transfer to 34819616337',
-    amount: 65848202,
+    amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
@@ -32,7 +30,7 @@ export const transactions: Transaction[] = [
     id: 't_jan28_2026_1',
     date: '2026-01-28T14:28:00',
     description: 'Transfer to 2406262157371913',
-    amount: 65848202,
+    amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
@@ -45,7 +43,7 @@ export const transactions: Transaction[] = [
     id: 't_jan26_2026_1',
     date: '2026-01-26T17:14:00',
     description: 'Transfer to 2029693610',
-    amount: 65848202,
+    amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
@@ -56,7 +54,7 @@ export const transactions: Transaction[] = [
     id: 't_jan26_2026_2',
     date: '2026-01-26T17:11:00',
     description: 'Transfer to 37211678291',
-    amount: 65848202,
+    amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
@@ -67,7 +65,7 @@ export const transactions: Transaction[] = [
     id: 't_jan26_2026_3',
     date: '2026-01-26T17:10:00',
     description: 'Transfer to 32076033837',
-    amount: 65848202,
+    amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
@@ -78,7 +76,7 @@ export const transactions: Transaction[] = [
     id: 't_jan26_2026_4',
     date: '2026-01-26T17:09:00',
     description: 'Transfer to 11196531627',
-    amount: 65848202,
+    amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
@@ -89,7 +87,7 @@ export const transactions: Transaction[] = [
     id: 't_jan26_2026_5',
     date: '2026-01-26T17:03:00',
     description: 'Transfer to 41665964747',
-    amount: 65848202,
+    amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
@@ -100,7 +98,7 @@ export const transactions: Transaction[] = [
     id: 't_jan26_2026_6',
     date: '2026-01-26T17:01:00',
     description: 'Transfer to 36384180646',
-    amount: 832883094,
+    amount: 8328830.94,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
@@ -111,7 +109,7 @@ export const transactions: Transaction[] = [
     id: 't_jan26_2026_7',
     date: '2026-01-26T16:59:00',
     description: 'Transfer to 1112603363371440',
-    amount: 41644154704,
+    amount: 416441547.04,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
@@ -122,7 +120,7 @@ export const transactions: Transaction[] = [
     id: 't_jan26_2026_8',
     date: '2026-01-26T16:55:00',
     description: 'Transfer to 179610100001246',
-    amount: 65848202,
+    amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
@@ -133,7 +131,7 @@ export const transactions: Transaction[] = [
     id: 't_jan26_2026_9',
     date: '2026-01-26T16:51:00',
     description: 'Transfer to 923010033724729',
-    amount: 65848202,
+    amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
@@ -144,7 +142,7 @@ export const transactions: Transaction[] = [
     id: 't_jan24_2026_1',
     date: '2026-01-24T16:10:00',
     description: 'Transfer to 179610100000618',
-    amount: 65848202,
+    amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
     status: 'success',

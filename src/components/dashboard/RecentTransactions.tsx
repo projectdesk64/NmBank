@@ -1,11 +1,10 @@
-import React, { useState, memo } from 'react';
+import { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowDownLeft, ArrowUpRight, ChevronRight, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/hooks/useLanguage';
-import { formatCurrency } from '@/utils/formatters';
 
 // Helper to format amount with ruble symbol (for dashboard display)
 const formatAmount = (amount: number): string => {
@@ -85,8 +84,8 @@ export const RecentTransactions = memo(({ data, loading = false }: RecentTransac
       <div className="bg-white rounded-2xl p-8 shadow-large mb-8">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-heading font-bold text-nmb-charcoal">{t.dashboard.recentTransactions.title}</h3>
-          <Button 
-            variant="link" 
+          <Button
+            variant="link"
             className="text-nmb-blue hover:text-nmb-blue/80 p-0 h-auto font-medium"
             onClick={() => navigate('/dashboard/transactions')}
           >
@@ -98,8 +97,8 @@ export const RecentTransactions = memo(({ data, loading = false }: RecentTransac
           <div className="text-center py-12">
             <Receipt className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600 mb-2">{t.dashboard.recentTransactions.noRecentTransactions}</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="mt-4"
               onClick={() => navigate('/dashboard/transactions')}
             >
@@ -120,8 +119,8 @@ export const RecentTransactions = memo(({ data, loading = false }: RecentTransac
                 {/* Icon Circle */}
                 <div className={cn(
                   "w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0",
-                  transaction.type === 'credit' 
-                    ? 'bg-green-50 text-green-600' 
+                  transaction.type === 'credit'
+                    ? 'bg-green-50 text-green-600'
                     : 'bg-red-50 text-red-600'
                 )}>
                   {transaction.type === 'credit' ? (

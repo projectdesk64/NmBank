@@ -117,25 +117,14 @@ export const Dashboard = () => {
 
   // Calculate live balance from transaction history
   const liveBalance = useMemo(() => {
-    // Check if transaction is a new January 2026 transaction by ID pattern
-    const isNewTransaction = (t: typeof user.transactions[0]) => {
-      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_') || t.id?.startsWith('t_feb03_2026_');
-    };
-
     // Sort Oldest -> Newest to simulate history (optional, but good for accuracy)
     const sorted = [...user.transactions].sort((a, b) =>
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
     // Replay transactions to get final sum
-    // For new transactions, amounts are in kopecks (divide by 100)
-    // For old transactions, amounts are already in rubles
     return sorted.reduce((acc, t) => {
-      let amount = typeof t.amount === 'string' ? parseFloat(t.amount) : t.amount;
-      // Convert kopecks to rubles for new transactions
-      if (isNewTransaction(t)) {
-        amount = amount / 100;
-      }
+      const amount = typeof t.amount === 'string' ? parseFloat(t.amount) : t.amount;
       return t.type === 'credit' ? acc + amount : acc - amount;
     }, 0);
   }, [user.transactions]);
@@ -169,11 +158,6 @@ export const Dashboard = () => {
 
   // Get recent transactions from context (first 5)
   const mockRecentTransactions = useMemo(() => {
-    // Check if transaction is a new January 2026 transaction by ID pattern
-    const isNewTransaction = (t: typeof user.transactions[0]) => {
-      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_') || t.id?.startsWith('t_feb03_2026_');
-    };
-
     // Generate referenceId if not provided in transaction data
     const generateReferenceId = (index: number) => {
       // Fallback: Generate a consistent ID based on transaction index
@@ -199,8 +183,7 @@ export const Dashboard = () => {
       return {
         id: tx.id,
         description: tx.description,
-        // For new transactions, divide by 100 (kopecks to rubles)
-        amount: isNewTransaction(tx) ? tx.amount / 100 : tx.amount,
+        amount: tx.amount,
         date: formatTransactionDateFromISO(tx.date, language),
         type: tx.type as 'credit' | 'debit',
         // Use referenceId from transaction if provided, otherwise generate one

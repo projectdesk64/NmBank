@@ -7,37 +7,36 @@ export * from '../types';
 export const spendingStats: MonthlySpending = {
   total: 4500000, // 4.5 Million RUB monthly spend
   byCategory: [
-    { category: 'Housing', amount: 2000000, color: '#FF6B00' }, // Estate Maintenance
-    { category: 'Transport', amount: 1000000, color: '#3B82F6' }, // Drivers/Fuel
-    { category: 'Food', amount: 500000, color: '#10B981' }, // Fine Dining
-    { category: 'Shopping', amount: 800000, color: '#8B5CF6' }, // Luxury Goods
+    { category: 'Housing', amount: 2000000, color: '#FF6B00' },
+    { category: 'Transport', amount: 1000000, color: '#3B82F6' },
+    { category: 'Food', amount: 500000, color: '#10B981' },
+    { category: 'Shopping', amount: 800000, color: '#8B5CF6' },
     { category: 'Utilities', amount: 200000, color: '#6B7280' }
   ]
 };
 
 // --- 2. Centralized Transactions (Mix of High Value & Daily Use) ---
 export const transactions: Transaction[] = [
-  // --- February 2026 Transfers ---
   {
-    id: 't_feb03_2026_2',
-    date: '2026-02-03T14:32:00',
+    id: 't_jan28_2026_2',
+    date: '2026-01-28T14:32:00',
     description: 'Transfer to 34819616337',
     amount: 65848202,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
-    balance: 1307589413384,
+    balance: 1307523565182,
     referenceId: 'txn-1769427869728'
   },
   {
-    id: 't_feb03_2026_1',
-    date: '2026-02-03T14:28:00',
+    id: 't_jan28_2026_1',
+    date: '2026-01-28T14:28:00',
     description: 'Transfer to 2406262157371913',
     amount: 65848202,
     type: 'debit',
     category: 'Transfer',
     status: 'success',
-    balance: 1307655261586,
+    balance: 1307589413384,
     referenceId: 'txn-1769427869727'
   },
 

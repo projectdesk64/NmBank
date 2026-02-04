@@ -73,7 +73,7 @@ export const TransactionsPage = () => {
   const transactionsWithBalance = useMemo(() => {
     // Check if transaction is a new January/February 2026 transaction by ID pattern
     const isNewTransaction = (t: Transaction) => {
-      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_') || t.id?.startsWith('t_feb03_2026_');
+      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_') || t.id?.startsWith('t_jan28_2026_');
     };
 
     // Separate new transactions from old transactions

@@ -85,6 +85,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
             newUser.accounts = newAccounts;
 
+            // Calculate total balance AFTER transfer in kopecks for correct UI display (focused on the source account being used)
+            const newTotalBalanceRubles = sourceAccount.balance;
+            const newTotalBalanceKopecks = Math.round(newTotalBalanceRubles * 100);
+
             // 3. Create Transaction
             const newTransaction: Transaction = {
                 id: `txn-${Date.now()}`,
@@ -95,7 +99,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 category: 'Transfer',
                 status: 'success',
                 accountId: sourceAccount.id,
-                accountName: sourceAccount.nickname || sourceAccount.type
+                accountName: sourceAccount.nickname || sourceAccount.type,
+                balance: newTotalBalanceKopecks
             };
 
             newUser.transactions = [newTransaction, ...newUser.transactions];

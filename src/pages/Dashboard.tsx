@@ -115,8 +115,9 @@ export const Dashboard = () => {
     return user.accounts.find(a => ['savings', 'checking', 'current'].includes(a.type.toLowerCase())) || user.accounts[0] || null;
   }, [user.accounts]);
 
-  // Hardcoded balance value as per client requirement
-  const liveBalance = 1307554537262.86;
+  // Extract balance dynamically so it updates during transfers but resets on page reload
+  const liveBalance = accountDetails?.balance || 13067487367.91;
+
 
   const formatIndianRuble = (amount: number) => {
     // Format using Indian locale for the commas (lakhs/crores format)

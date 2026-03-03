@@ -16,13 +16,275 @@ export const spendingStats: MonthlySpending = {
 
 export const transactions: Transaction[] = [
   {
+    id: 't_mar03_2026_1',
+    date: '2026-03-03T15:04:00',
+    description: 'Transfer to 3249025834',
+    amount: 673312.28,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1306748736791,
+    referenceId: 'txn-1769427869774'
+  },
+  {
+    id: 't_feb26_2026_8',
+    date: '2026-02-26T15:31:00',
+    description: 'Transfer to 43170914191',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1306816068019,
+    referenceId: 'txn-1769427869773'
+  },
+  {
+    id: 't_feb26_2026_7',
+    date: '2026-02-26T12:52:00',
+    description: 'Transfer to 606601010050171',
+    amount: 849899.62,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1306881916221,
+    referenceId: 'txn-1769427869772'
+  },
+  {
+    id: 't_feb26_2026_6',
+    date: '2026-02-26T12:47:00',
+    description: 'Transfer to 008212010003389',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1306966906183,
+    referenceId: 'txn-1769427869771'
+  },
+  {
+    id: 't_feb26_2026_5',
+    date: '2026-02-26T12:35:00',
+    description: 'Transfer to 920010064392301',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1307032754385,
+    referenceId: 'txn-1769427869770'
+  },
+  {
+    id: 't_feb26_2026_4',
+    date: '2026-02-26T12:24:00',
+    description: 'Transfer to 4488101001675',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1307098602587,
+    referenceId: 'txn-1769427869769'
+  },
+  {
+    id: 't_feb26_2026_3',
+    date: '2026-02-26T12:23:00',
+    description: 'Transfer to 31308627669',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1307164450789,
+    referenceId: 'txn-1769427869768'
+  },
+  {
+    id: 't_feb26_2026_2',
+    date: '2026-02-26T12:21:00',
+    description: 'Transfer to 38205206011',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1307230298991,
+    referenceId: 'txn-1769427869767'
+  },
+  {
+    id: 't_feb26_2026_1',
+    date: '2026-02-26T12:19:00',
+    description: 'Transfer to 33755118501',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1307296147193,
+    referenceId: 'txn-1769427869766'
+  },
+  {
+    id: 't_feb12_2026_13',
+    date: '2026-02-12T16:23:00',
+    description: 'Transfer to 11196531627',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1307361995395,
+    referenceId: 'txn-1769427869729'
+  },
+  {
+    id: 't_feb12_2026_15',
+    date: '2026-02-12T15:58:00',
+    description: 'Transfer to 006001522029',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1307427843597
+  },
+  {
+    id: 't_feb12_2026_12',
+    date: '2026-02-12T15:40:00',
+    description: 'Transfer to 36384180646',
+    amount: 8328830.94,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1307493691799,
+    referenceId: 'txn-1769427869743'
+  },
+  {
+    id: 't_feb12_2026_11',
+    date: '2026-02-12T15:38:00',
+    description: 'Transfer to 1112603363371440',
+    amount: 416441547.04,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'completed',
+    balance: 1308326574893,
+    referenceId: 'txn-1769427869742'
+  },
+  {
+    id: 't_feb12_2026_10',
+    date: '2026-02-12T15:35:00',
+    description: 'Transfer to 390001000000335',
+    amount: 298733.84,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1349970729597,
+    referenceId: 'txn-1769427869741'
+  },
+  {
+    id: 't_feb12_2026_9',
+    date: '2026-02-12T15:31:00',
+    description: 'Transfer to 34819616337',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 135000060298,
+    referenceId: 'txn-1769427869740'
+  },
+  {
+    id: 't_feb12_2026_8',
+    date: '2026-02-12T15:23:00',
+    description: 'Transfer to 2029693610',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1350066451182,
+    referenceId: 'txn-1769427869738'
+  },
+  {
+    id: 't_feb12_2026_7',
+    date: '2026-02-12T15:21:00',
+    description: 'Transfer to 37211678291',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1350132299384,
+    referenceId: 'txn-1769427869737'
+  },
+  {
+    id: 't_feb12_2026_6',
+    date: '2026-02-12T15:20:00',
+    description: 'Transfer to 32076033837',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1350198147586,
+    referenceId: 'txn-1769427869736'
+  },
+  {
+    id: 't_feb12_2026_5',
+    date: '2026-02-12T15:18:00',
+    description: 'Transfer to 11196531627',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1350263995788,
+    referenceId: 'txn-1769427869735'
+  },
+  {
+    id: 't_feb12_2026_4',
+    date: '2026-02-12T15:17:00',
+    description: 'Transfer to 41665964747',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 135032984399,
+    referenceId: 'txn-1769427869734'
+  },
+  {
+    id: 't_feb12_2026_14',
+    date: '2026-02-12T15:13:00',
+    description: 'Transfer to 1112603363371440',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1350424955592
+  },
+  {
+    id: 't_feb12_2026_3',
+    date: '2026-02-12T15:12:00',
+    description: 'Transfer to 179610100001246',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1350461540394,
+    referenceId: 'txn-1769427869731'
+  },
+  {
+    id: 't_feb12_2026_2',
+    date: '2026-02-12T15:10:00',
+    description: 'Transfer to 923010033724729',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1350527388596,
+    referenceId: 'txn-1769427869730'
+  },
+  {
+    id: 't_feb12_2026_1',
+    date: '2026-02-12T15:09:00',
+    description: 'Transfer to 179610100000618',
+    amount: 658482.02,
+    type: 'debit',
+    category: 'Transfer',
+    status: 'success',
+    balance: 1350593236798,
+    referenceId: 'txn-1769427869729'
+  },
+  {
     id: 't_jan28_2026_2',
     date: '2026-01-28T14:32:00',
     description: 'Transfer to 34819616337',
     amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
-    status: 'success',
+    status: 'failed',
     balance: 1307523565182,
     referenceId: 'txn-1769427869728'
   },
@@ -33,7 +295,7 @@ export const transactions: Transaction[] = [
     amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
-    status: 'success',
+    status: 'failed',
     balance: 1307589413384,
     referenceId: 'txn-1769427869727'
   },
@@ -46,7 +308,7 @@ export const transactions: Transaction[] = [
     amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
-    status: 'success',
+    status: 'failed',
     balance: 1307655261586,
     referenceId: 'txn-1769427869697'
   },
@@ -57,7 +319,7 @@ export const transactions: Transaction[] = [
     amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
-    status: 'success',
+    status: 'failed',
     balance: 1307721109788,
     referenceId: 'txn-1769427708499'
   },
@@ -68,7 +330,7 @@ export const transactions: Transaction[] = [
     amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
-    status: 'success',
+    status: 'failed',
     balance: 1307786957990,
     referenceId: 'txn-1769427638186'
   },
@@ -79,7 +341,7 @@ export const transactions: Transaction[] = [
     amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
-    status: 'success',
+    status: 'failed',
     balance: 1307852806192,
     referenceId: 'txn-1769427564123'
   },
@@ -90,7 +352,7 @@ export const transactions: Transaction[] = [
     amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
-    status: 'success',
+    status: 'failed',
     balance: 1307918654394,
     referenceId: 'txn-1769427213312'
   },
@@ -101,7 +363,7 @@ export const transactions: Transaction[] = [
     amount: 8328830.94,
     type: 'debit',
     category: 'Transfer',
-    status: 'success',
+    status: 'failed',
     balance: 1307984502596,
     referenceId: 'txn-1769427090839'
   },
@@ -112,7 +374,7 @@ export const transactions: Transaction[] = [
     amount: 416441547.04,
     type: 'debit',
     category: 'Transfer',
-    status: 'success',
+    status: 'failed',
     balance: 1308817385690,
     referenceId: 'txn-1769426983504'
   },
@@ -123,7 +385,7 @@ export const transactions: Transaction[] = [
     amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
-    status: 'success',
+    status: 'failed',
     balance: 1350461540394,
     referenceId: 'txn-1769426733391'
   },
@@ -134,7 +396,7 @@ export const transactions: Transaction[] = [
     amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
-    status: 'success',
+    status: 'failed',
     balance: 1350527388596,
     referenceId: 'txn-1769426510017'
   },
@@ -145,7 +407,7 @@ export const transactions: Transaction[] = [
     amount: 658482.02,
     type: 'debit',
     category: 'Transfer',
-    status: 'success',
+    status: 'failed',
     balance: 1350593236798,
     referenceId: 'txn-1769251224532'
   },
@@ -344,10 +606,10 @@ export const currentUser: User = {
     {
       id: 'acc1',
       accountNumber: '40817810099910004567',
-      accountNo: '40817810099910004567', // Legacy support
+      accountNo: '40817810099910004567',
       type: 'Savings Account',
       nickname: 'Main Savings',
-      balance: 13506600020.00, // Adjusted to match exact Net Worth target
+      balance: 13067487367.91,
       currency: 'RUB',
       status: 'Active',
       ifsc: 'NMB0001234',

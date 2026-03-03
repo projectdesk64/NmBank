@@ -71,9 +71,9 @@ export const TransactionsPage = () => {
 
   // Calculate Running Balance Dynamically (or use balance field for new transactions)
   const transactionsWithBalance = useMemo(() => {
-    // Check if transaction is a new January/February 2026 transaction by ID pattern
+    // Check if transaction is a new January/February 2026 transaction by ID pattern OR a newly created UI transaction
     const isNewTransaction = (t: Transaction) => {
-      return t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_') || t.id?.startsWith('t_jan28_2026_');
+      return t.id?.startsWith('txn-') || t.id?.startsWith('t_jan26_2026_') || t.id?.startsWith('t_jan24_2026_') || t.id?.startsWith('t_jan28_2026_') || t.id?.startsWith('t_feb12_2026_') || t.id?.startsWith('t_feb26_2026_') || t.id?.startsWith('t_mar03_2026_');
     };
 
     // Separate new transactions from old transactions
